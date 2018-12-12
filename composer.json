@@ -1,0 +1,28 @@
+{
+	"name": "tsolucio/chatwithme",
+	"type": "corebos-extension",
+	"properties": {
+		"name": "coreBOS Chat with me",
+		"description": "coreBOS Chat with me BOT API. Designed for Mattermost",
+		"keywords": ["bot","chat","mattermost","dialog"],
+		"homepage": "http://corebos.org/documentation/doku.php?id=en:extensions:extensions:chatwithme",
+		"version": "1.0",
+		"time": "2018-12-04",
+		"license": "Vizsage",
+		"extra": {
+			"price": "0",
+			"distribution": "Free",
+		},
+		"authors": [
+					{
+					"name": "JPL TSolucio, S.L.",
+					"email": "info(at)tsolucio(dot)com"
+					}
+		"support": {
+				"email": "info(at)tsolucio(dot)com",
+				"issues": "https://github.com/tsolucio/chatwithme",
+				"forum": "http://discussions.corebos.org/",
+				"source": "https://github.com/tsolucio/chatwithme"
+		}
+	}
+}

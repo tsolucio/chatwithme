@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>chatwithme_log</name>
+			<sql><![CDATA[CREATE TABLE `chatwithme_log` (
+	`cbuser` int(11) NOT NULL DEFAULT '0',
+	`mmuser` int(11) NOT NULL DEFAULT '0',
+	`dt` datetime DEFAULT NULL,
+	`command` varchar(250) NOT NULL DEFAULT '',
+	`mmtext` varchar(250) NOT NULL DEFAULT '',
+	`found` int(1) NOT NULL DEFAULT '0',
+	KEY `cwmcbu` (`cbuser`),
+	KEY `cwmmmu` (`mmuser`),
+	KEY `cwmdt` (`dt`),
+	KEY `cwmcmd` (`command`),
+	KEY `cwmfnd` (`found`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;]]></sql>
+		</table>
+	</tables>
+</schema>
