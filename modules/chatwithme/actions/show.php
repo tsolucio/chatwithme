@@ -15,43 +15,195 @@
 *************************************************************************************************/
 
 class cbmmActionshow extends chatactionclass {
+	private $questionid;
+	private $status;
+	private const STATUS_RETURNRESULTS = 1;
+	private const STATUS_FOUNDSOME = 2;
+	private const STATUS_NOTFOUND = 3;
+	private const STATUS_NOPERMISSION = 4;
+	private const STATUS_BADFORMAT = 5;
 
 	public function getHelp() {
-		return getTranslatedString(' - **show** Show a record', 'chatwithme');
+		return ' - '.getTranslatedString('show_command', 'chatwithme');
+	}
+
+	public function process() {
+		global $adb;
+		$req = getMMRequest();
+		$prm = parseMMMsg($req['text']);
+		$this->questionid = 0;
+		$this->status = 0;
+		if (count($prm)!=2 || empty($prm[1])) {
+			$this->status = self::STATUS_BADFORMAT;
+		} else {
+			if (!is_numeric($prm[1])) {
+				$qrs = $adb->pquery(
+					'select cbquestionid
+						from vtiger_cbquestion
+						inner join vtiger_crmentity on crmid = cbquestionid
+						where deleted=0 and qname=?',
+					array($prm[1])
+				);
+				if ($adb->num_rows($qrs)==1) {
+					$prm[1] = $adb->query_result($qrs, 0, 'cbquestionid');
+				} else {
+					if ($adb->num_rows($qrs)==0) {
+						$qrs = $adb->pquery(
+							'select cbquestionid
+								from vtiger_cbquestion
+								inner join vtiger_crmentity on crmid = cbquestionid
+								where deleted=0 and qname like ?',
+							array('%'.$prm[1].'%')
+						);
+						if ($adb->num_rows($qrs)==0) {
+							$this->status = self::STATUS_NOTFOUND;
+						} else {
+							$this->status = self::STATUS_FOUNDSOME;
+							$this->questionid = $prm[1];
+						}
+					} else {
+						$this->status = self::STATUS_FOUNDSOME;
+						$this->questionid = $prm[1];
+					}
+				}
+			}
+			if ($this->status == 0) {
+				if (!isRecordExists($prm[1]) || getSalesEntityType($prm[1])!='cbQuestion') {
+					$this->status = self::STATUS_NOTFOUND;
+				} elseif (isPermitted('cbQuestion', 'DetailView', $prm[1]) != 'yes') {
+					$this->status = self::STATUS_NOPERMISSION;
+				} else {
+					$this->status = self::STATUS_RETURNRESULTS;
+					$this->questionid = $prm[1];
+				}
+			}
+		}
+		return true;
 	}
 
 	public function getResponse() {
-		$acc = CRMEntity::getInstance('Accounts');
-		$acc->retrieve_entity_info(74, 'Accounts');
-		return array(
-			'response_type' => 'in_channel',
-			'attachments' => array(array(
-				'color' => '#008000',
-				'title' => $acc->column_fields['accountname'],
-				"fields"=> array(
-					array(
-						"short"=>true,
-						"title"=>"Employees",
-						"value"=>$acc->column_fields['employees']
-					),
-					array(
-						"short"=>true,
-						"title"=>"Bill City",
-						"value"=>$acc->column_fields['bill_city']
-					),
-					array(
-						"short"=>false,
-						"title"=>"Website",
-						"value"=>$acc->column_fields['website']
-					),
-					array(
-						"short"=>false,
-						"title"=>"Description",
-						"value"=>$acc->column_fields['description']
-					),
-				),
-			)),
+		global $current_user;
+		$req = getMMRequest();
+		switch ($this->status) {
+			case self::STATUS_FOUNDSOME:
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('yellow'),
+						'title' => getTranslatedString('FoundSome', 'chatwithme'),
+						'text' => getTranslatedString('OneOfThese', 'chatwithme')."\n\n".$this->getQuestionCandidates(),
+					)),
+				);
+				break;
+			case self::STATUS_RETURNRESULTS:
+				$ret = $this->getQuestionResultsMsg();
+				break;
+			case self::STATUS_NOPERMISSION:
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('red'),
+						'title' => getTranslatedString('LBL_PERMISSION'),
+					)),
+				);
+				break;
+			case self::STATUS_NOTFOUND:
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('red'),
+						'title' => getTranslatedString('LBL_RECORD_NOT_FOUND', 'chatwithme'),
+					)),
+				);
+				break;
+			case self::STATUS_BADFORMAT:
+			default:
+				$ret = getMMDoNotUnderstandMessage($this->getHelp());
+				break;
+		}
+		return $ret;
+	}
+
+	private function getQuestionCandidates() {
+		global $adb;
+		$qrs = $adb->pquery(
+			'select cbquestionid,qname
+				from vtiger_cbquestion
+				inner join vtiger_crmentity on crmid = cbquestionid
+				where deleted=0 and qname like ?',
+			array('%'.$this->questionid.'%')
 		);
+		$md = '| ID | '.getTranslatedString('qname', 'cbQuestion').' |'."\n";
+		$md .= '|----|----|'."\n";
+		while ($q = $adb->fetch_array($qrs)) {
+			$md .= '| '.$q['cbquestionid'].' | '.$q['qname']."\n";
+		}
+		return $md;
+	}
+
+	private function getQuestionResultsMsg() {
+		include_once 'modules/cbQuestion/cbQuestion.php';
+		$q = cbQuestion::getAnswer($this->questionid);
+		switch ($q['type']) {
+			case 'ERROR':
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('red'),
+						'title' => getTranslatedString('QuestionError', 'chatwithme'),
+					)),
+				);
+				break;
+			case 'Table':
+			default:
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('blue'),
+						'title' => $q['title'],
+						'text'=> $this->getTableQuestionMD($q['answer'], $q['module']),
+						'image_url'=> 'http://localhost/coreBOSwork/index.php?action=cbQuestionAjax&file=Answer&module=cbQuestion&qid=43213',
+					)),
+				);
+		}
+		return $ret;
+	}
+
+	private function getTableQuestionMD($table, $module) {
+		$headers = array_keys($table[0]);
+		$md = '| ';
+		$dashes = '|';
+		foreach ($headers as $fname) {
+			if ($fname == 'id') {
+				$md .= ' ID | ';
+			} else {
+				$md .= getTranslatedString($fname, $module).' | ';
+			}
+			$dashes .= '----|';
+		}
+		$md = trim($md)."\n".$dashes."\n";
+		$list_max_entries_per_page = GlobalVariable::getVariable('Application_ListView_PageSize', 20);
+		$cnt = 0;
+		foreach ($table as $row) {
+			$md .= '| ';
+			foreach ($row as $fname => $fvalue) {
+				if ($fname == 'id') {
+					list($wsid, $crmid) = explode('x', $fvalue);
+					$md .= $crmid.' | ';
+				} else {
+					$md .= $fvalue.' | ';
+				}
+			}
+			$md = trim($md)."\n";
+			$cnt++;
+			if ($cnt>$list_max_entries_per_page) {
+				break;
+			}
+		}
+		if ($cnt<count($table)) {
+			$md .= "\n\n[".getTranslatedString('ClickHereForFullResults', 'chatwithme').'](todo)';
+		}
+		return  $md;
 	}
 }
 ?>

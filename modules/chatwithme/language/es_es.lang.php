@@ -19,6 +19,10 @@ $mod_strings = array(
 	'record' => 'registro',
 	'deleted' => 'ha sido eliminado',
 	'notdeleted' => 'NO ha sido eliminado',
+	'QuestionError' => 'Error procesando la pregunta.',
+	'FoundSome' => 'No he podido encontrar el elemento indicado.',
+	'OneOfThese' => '¿Podría ser alguno de estos?',
+	'ClickHereForFullResults' => 'Pulsa aquí para ver la respuesta completa',
 	'_active' => 'Integración Activa',
 	'_cmdlang' => 'Idioma de los Comandos',
 	'_username' => 'Nombre de usuario con el que enviar mensajes',
@@ -27,5 +31,6 @@ $mod_strings = array(
 	'_tokens' => 'Lista separada por comas de tokens válidos',
 	// commands
 	'delete_command' => '**borra {registro} [si]**: Borra un registro',
+	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',
 );
 ?>

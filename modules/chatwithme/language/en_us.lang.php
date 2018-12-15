@@ -19,6 +19,10 @@ $mod_strings = array(
 	'record' => 'record',
 	'deleted' => 'has been deleted',
 	'notdeleted' => 'has NOT been deleted',
+	'QuestionError' => 'Error processing the question.',
+	'FoundSome' => 'I could not find the indicated element.',
+	'OneOfThese' => 'Couold it be one of these?',
+	'ClickHereForFullResults' => 'Click Here for full answer',
 	'_active' => 'Integration Active',
 	'_cmdlang' => 'Command Language',
 	'_username' => 'User name to post as',
@@ -27,5 +31,6 @@ $mod_strings = array(
 	'_tokens' => 'Comma separated list of valid tokens',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
+	'show_command' => '**show {question}**: Launch a question and see the results',
 );
 ?>
