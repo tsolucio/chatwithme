@@ -33,16 +33,22 @@ class cbmmActionshow extends chatactionclass {
 		$prm = parseMMMsg($req['text']);
 		$this->questionid = 0;
 		$this->status = 0;
-		if (count($prm)!=2 || empty($prm[1])) {
+		$numprms = count($prm);
+		if ($numprms==1 || empty($prm[1])) {
 			$this->status = self::STATUS_BADFORMAT;
 		} else {
 			if (!is_numeric($prm[1])) {
+				$qname = '';
+				for ($t=1; $t<$numprms; $t++) {
+					$qname .= ' '.$prm[$t];
+				}
+				$qname = trim($qname);
 				$qrs = $adb->pquery(
 					'select cbquestionid
 						from vtiger_cbquestion
 						inner join vtiger_crmentity on crmid = cbquestionid
 						where deleted=0 and qname=?',
-					array($prm[1])
+					array($qname)
 				);
 				if ($adb->num_rows($qrs)==1) {
 					$prm[1] = $adb->query_result($qrs, 0, 'cbquestionid');
@@ -53,17 +59,17 @@ class cbmmActionshow extends chatactionclass {
 								from vtiger_cbquestion
 								inner join vtiger_crmentity on crmid = cbquestionid
 								where deleted=0 and qname like ?',
-							array('%'.$prm[1].'%')
+							array('%'.$qname.'%')
 						);
 						if ($adb->num_rows($qrs)==0) {
 							$this->status = self::STATUS_NOTFOUND;
 						} else {
 							$this->status = self::STATUS_FOUNDSOME;
-							$this->questionid = $prm[1];
+							$this->questionid = $qname;
 						}
 					} else {
 						$this->status = self::STATUS_FOUNDSOME;
-						$this->questionid = $prm[1];
+						$this->questionid = $qname;
 					}
 				}
 			}
@@ -154,6 +160,15 @@ class cbmmActionshow extends chatactionclass {
 					)),
 				);
 				break;
+			case 'Number':
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('blue'),
+						'title' => $this->getNumberQuestionMD($q['answer'], $q['properties'], $q['module'], $q['title']),
+					)),
+				);
+				break;
 			case 'Table':
 			default:
 				$ret = array(
@@ -161,7 +176,7 @@ class cbmmActionshow extends chatactionclass {
 					'attachments' => array(array(
 						'color' => getMMMsgColor('blue'),
 						'title' => $q['title'],
-						'text'=> $this->getTableQuestionMD($q['answer'], $q['module']),
+						'text'=> $this->getTableQuestionMD($q['answer'], $q['properties'], $q['module']),
 						'image_url'=> 'http://localhost/coreBOSwork/index.php?action=cbQuestionAjax&file=Answer&module=cbQuestion&qid=43213',
 					)),
 				);
@@ -169,17 +184,42 @@ class cbmmActionshow extends chatactionclass {
 		return $ret;
 	}
 
-	private function getTableQuestionMD($table, $module) {
-		$headers = array_keys($table[0]);
-		$md = '| ';
-		$dashes = '|';
-		foreach ($headers as $fname) {
-			if ($fname == 'id') {
-				$md .= ' ID | ';
-			} else {
-				$md .= getTranslatedString($fname, $module).' | ';
+	private function getNumberQuestionMD($response, $props, $module, $title) {
+		$ps = json_decode($props, true);
+		if (json_last_error()!= JSON_ERROR_NONE || empty($props) || empty($ps) || empty($ps['columnlabels'])) {
+			$md = $title.': ';
+		} else {
+			$md = getTranslatedString($ps['columnlabels'][0], $module).': ';
+		}
+		$md .= reset($response[0]);
+		return $md;
+	}
+
+	private function getTableQuestionMD($table, $props, $module) {
+		$ps = json_decode($props, true);
+		if (json_last_error()!= JSON_ERROR_NONE || empty($props) || empty($ps) || empty($ps['columnlabels'])) {
+			$headers = array_keys($table[0]);
+			$md = '| ';
+			$dashes = '|';
+			foreach ($headers as $fname) {
+				if ($fname == 'id') {
+					$md .= getTranslatedString($module.' ID', $module).' | ';
+				} else {
+					$md .= getTranslatedString($fname, $module).' | ';
+				}
+				$dashes .= '----|';
 			}
-			$dashes .= '----|';
+		} else {
+			$md = '| ';
+			$dashes = '|';
+			foreach ($ps['columnlabels'] as $fname) {
+				if ($fname == 'id') {
+					$md .= ' ID | ';
+				} else {
+					$md .= getTranslatedString($fname, $module).' | ';
+				}
+				$dashes .= '----|';
+			}
 		}
 		$md = trim($md)."\n".$dashes."\n";
 		$list_max_entries_per_page = GlobalVariable::getVariable('Application_ListView_PageSize', 20);
