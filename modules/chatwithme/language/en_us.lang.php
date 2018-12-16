@@ -29,8 +29,14 @@ $mod_strings = array(
 	'_icon_url' => 'Icon URL to show on post',
 	'_posturl' => 'URL to post messages to',
 	'_tokens' => 'Comma separated list of valid tokens',
+	'LBL_MODULE_NOT_FOUND' => 'I could not find the indicated module',
+	'LBL_FIELD_NOT_FOUND' => 'I could not find the indicated field',
+	'LBL_NOSEARCHRESULTS' => 'I could not find any information with that search term',
+	'LBL_SEARCHRESULTS' => 'Search results:',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
+	'find_command1' => '**find [{module}] {term}**: search the given term globally or in the given module',
+	'find_command2' => '**find module {field}{condition}{value}**: search the {field} on the module for the {value}, where condition can be =|>|>=|<|<=|%',
 );
 ?>

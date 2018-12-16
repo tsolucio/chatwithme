@@ -13,6 +13,9 @@
 * permissions and limitations under the License. You may obtain a copy of the License
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
+require 'modules/chatwithme/vendor/autoload.php';
+use League\HTMLToMarkdown\HtmlConverter;
+
 include 'vtlib/Vtiger/Net/Client.php';
 
 /**
@@ -170,5 +173,30 @@ function getMMDoNotUnderstandMessage($msg) {
 			'text' => getTranslatedString('ThisIsHelp', 'chatwithme')."\n".$msg,
 		)),
 	);
+}
+
+function convertFieldValue2Markdown($value) {
+	global $site_URL, $default_charset;
+	if (!empty($value)) {
+		$value = html_entity_decode($value, ENT_QUOTES, $default_charset);
+		$dom = new DOMDocument;
+		$dom->loadHTML($value);
+		$images = $dom->getElementsByTagName('img');
+		foreach ($images as $image) {
+			if (strpos($image->getAttribute('src'), $site_URL)===false) {
+				$image->setAttribute('src', $site_URL.'/'.$image->getAttribute('src'));
+			}
+		}
+		$links = $dom->getElementsByTagName('a');
+		foreach ($links as $link) {
+			if (strpos($link->getAttribute('href'), $site_URL)===false) {
+				$link->setAttribute('href', $site_URL.'/'.$link->getAttribute('href'));
+			}
+		}
+		$value = $dom->saveHTML();
+		$converter = new HtmlConverter(array('remove_nodes' => 'span div'));
+		$value = $converter->convert($value);
+	}
+	return $value;
 }
 ?>

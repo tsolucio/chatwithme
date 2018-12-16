@@ -29,8 +29,14 @@ $mod_strings = array(
 	'_icon_url' => 'URL del icono a mostrar en los mensajes',
 	'_posturl' => 'URL a la que enviar mensajes',
 	'_tokens' => 'Lista separada por comas de tokens válidos',
+	'LBL_MODULE_NOT_FOUND' => 'No he podido encontrar el módulo indicado',
+	'LBL_FIELD_NOT_FOUND' => 'No he podido encontrar el campo indicado',
+	'LBL_NOSEARCHRESULTS' => 'No he podido encontrar ninguna información con esa condición',
+	'LBL_SEARCHRESULTS' => 'Resultados de la búsqueda:',
 	// commands
 	'delete_command' => '**borra {registro} [si]**: Borra un registro',
 	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',
+	'find_command1' => '**busca [{módulo}] {término}**: Busca el término dado globalmente o en el módulo dado',
+	'find_command2' => '**busca módulo {campo}{condición}{valor}**: Busca el {campo} del módulo con el {valor}, donde condición puede ser =|>|>=|<|<=|%',
 );
 ?>
