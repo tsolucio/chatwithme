@@ -21,7 +21,6 @@ class cbmmActionsee extends chatactionclass {
 	}
 
 	public function getResponse() {
-		global $log;
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		$this->crmid = $prm[1];
@@ -30,28 +29,23 @@ class cbmmActionsee extends chatactionclass {
 		$data = $ent->retrieve_entity_info($prm[1], $module);
 		$blocks = getBlocks($module, 'detail_view', '', $ent->column_fields);
 		$fieldsArray = array();
-			foreach ($blocks as $key =>$value) {
-				$arr_records = $value;
-				foreach ($arr_records as $key => $value) {
-					$field_label; $field_value;
-					$arr_fieldsrec = $value;
-					foreach ($arr_fieldsrec as $key => $value) {
-						$field_rec  = array(
-							"short" => ((($value['ui']==20) || ($value['ui']==19)) ? false: true), 
-							"title" => $key, 
-							"value" => convertFieldValue2Markdown($value['value']), 
-						);
-						array_push($fieldsArray, $field_rec);
- 					}
+		foreach ($blocks as $rows) {
+			foreach ($rows as $fields) {
+				foreach ($fields as $label => $field) {
+					$fieldsArray[] = array(
+						'short' => ((($field['ui']==20) || ($field['ui']==19)) ? false: true),
+						'title' => $label,
+						'value' => convertFieldValue2Markdown($field['value']),
+					);
 				}
-			} 
+			}
+		}
 		return array(
 			'response_type' => 'in_channel',
-			'attachments' => array(
-				array(
+			'attachments' => array(array(
 				'color' => '#008000',
-				'title' => 'Records From '. $module,
-				"fields"=> $fieldsArray,
+				'title' => getTranslatedString('SINGLE_'.$module, $module),
+				'fields'=> $fieldsArray,
 			)),
 		);
 	}

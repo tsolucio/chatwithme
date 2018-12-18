@@ -38,5 +38,6 @@ $mod_strings = array(
 	'show_command' => '**show {question}**: Launch a question and see the results',
 	'find_command1' => '**find [{module}] {term}**: search the given term globally or in the given module',
 	'find_command2' => '**find module {field}{condition}{value}**: search the {field} on the module for the {value}, where condition can be =|>|>=|<|<=|%',
+	'see_command' => '**see {record}**: See the details of a record',
 );
 ?>

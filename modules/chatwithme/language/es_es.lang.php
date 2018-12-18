@@ -38,5 +38,6 @@ $mod_strings = array(
 	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',
 	'find_command1' => '**busca [{módulo}] {término}**: Busca el término dado globalmente o en el módulo dado',
 	'find_command2' => '**busca módulo {campo}{condición}{valor}**: Busca el {campo} del módulo con el {valor}, donde condición puede ser =|>|>=|<|<=|%',
+	'see_command' => '**ver {registro}**: Ver el detalle de un registro',
 );
 ?>
