@@ -18,21 +18,39 @@ class chatwithme extends CRMEntity {
 	 * @param String Event Type (module.postinstall, module.disabled, module.enabled, module.preuninstall)
 	 */
 	public function vtlib_handler($modulename, $event_type) {
-		include_once 'vtlib/Vtiger/Module.php';
-		$current_user = Users::getActiveAdminUser();
-		include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
-		$taskTypes = array();
-		$defaultModules = array('include' => array(), 'exclude'=>array());
-		$taskType= array("name"=>"CBSendMMSMSTask", "label"=>"Send SMS To MM",
-			"classname"=>"VTSendMessage2MMTask",
-			"classpath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.inc",
-			"templatepath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.tpl",
-			"modules"=>$defaultModules,
-			"sourcemodule"=>'');
-		VTTaskType::registerTaskType($taskType);
 		if ($event_type == 'module.postinstall') {
 			// TODO Handle post installation actions
 			@copy('modules/chatwithme/cwmapi.php', 'chatwithme.php');
+			include_once 'vtlib/Vtiger/Module.php';
+			include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
+			$taskTypes = array();
+			$defaultModules = array('include' => array(), 'exclude'=>array());
+			$taskType= array(
+				"name"=>"CBSendMMMSGTask",
+				"label"=>"Send Message To MM",
+				"classname"=>"VTSendMessage2MMTask",
+				"classpath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.inc",
+				"templatepath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.tpl",
+				"modules"=>$defaultModules,
+				"sourcemodule"=>'',
+			);
+			VTTaskType::registerTaskType($taskType);
+			$modname = 'Users';
+			$module = Vtiger_Module::getInstance($modname);
+			$block = Vtiger_Block::getInstance('LBL_USER_ADV_OPTIONS', $module);
+			$field = Vtiger_Field::getInstance('mmuserid', $module);
+			if ($field) {
+				$this->ExecuteQuery('update vtiger_field set presence=2 where fieldid=?', array($field->id));
+			} else {
+				$fieldInstance = new Vtiger_Field();
+				$fieldInstance->name = 'mmuserid';
+				$fieldInstance->label = 'mmuserid';
+				$fieldInstance->columntype = 'varchar(100)';
+				$fieldInstance->uitype = 1;
+				$fieldInstance->displaytype = 1;
+				$fieldInstance->typeofdata = 'V~O';
+				$block->addField($fieldInstance);
+			}
 		} elseif ($event_type == 'module.disabled') {
 			// TODO Handle actions when this module is disabled.
 			@unlink('chatwithme.php');

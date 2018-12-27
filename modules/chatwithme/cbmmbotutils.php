@@ -24,6 +24,9 @@ include 'vtlib/Vtiger/Net/Client.php';
  */
 function sendMMMsg($response, $slashcommand, $addDefault = true) {
 	global $configmm;
+	if (empty($configmm)) {
+		$configmm = getMMSettings();
+	}
 	$default = array();
 	if ($addDefault) {
 		$default['username'] = $configmm['username'];
