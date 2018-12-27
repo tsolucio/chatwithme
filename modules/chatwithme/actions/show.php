@@ -169,6 +169,17 @@ class cbmmActionshow extends chatactionclass {
 					)),
 				);
 				break;
+			case 'RowChart':
+			case 'Pie':
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('blue'),
+						'title' => $q['title'],
+						'ts' => $this->getChartQuestionMD($q['answer'], $q['properties'], $q['module'], $q['type']),
+					)),
+				);
+				break;
 			case 'Table':
 			default:
 				$ret = array(
@@ -177,7 +188,6 @@ class cbmmActionshow extends chatactionclass {
 						'color' => getMMMsgColor('blue'),
 						'title' => $q['title'],
 						'text'=> $this->getTableQuestionMD($q['answer'], $q['properties'], $q['module']),
-						'image_url'=> 'http://localhost/coreBOSwork/index.php?action=cbQuestionAjax&file=Answer&module=cbQuestion&qid=43213',
 					)),
 				);
 		}
@@ -243,7 +253,40 @@ class cbmmActionshow extends chatactionclass {
 		if ($cnt<count($table)) {
 			$md .= "\n\n[".getTranslatedString('ClickHereForFullResults', 'chatwithme').'](todo)';
 		}
-		return  $md;
+		return $md;
+	}
+
+	private function getChartQuestionMD($chartdata, $props, $module, $type) {
+		include_once 'modules/chatwithme/vendor/RandomColor.php';
+		$ps = json_decode($props, true);
+		if (json_last_error()!= JSON_ERROR_NONE || empty($props) || empty($ps)) {
+			$keys = array_keys($chartdata[0]);
+			$keylabel = $keys[0];
+			$keyvalue = $keys[1];
+		} else {
+			$keylabel = $ps['key_label'];
+			$keyvalue = $ps['key_value'];
+		}
+		$data = array(
+			'labels' => array(),
+			'datasets' => array(array(
+				'data' => array(),
+				'backgroundColor' => array(),
+			)),
+		);
+		foreach ($chartdata as $row) {
+			$data['labels'][] = $row[$keylabel];
+			$data['datasets'][0]['data'][] = $row[$keyvalue];
+			$data['datasets'][0]['backgroundColor'][] = RandomColor::one(array(
+				'luminosity' => 'dark',
+				'hue' => 'random'
+			));
+		}
+		$chart = array(
+			'type' => $type,
+			'data' => $data,
+		);
+		return json_encode($chart);
 	}
 }
 ?>
