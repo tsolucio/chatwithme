@@ -18,18 +18,18 @@ class chatwithme extends CRMEntity {
 	 * @param String Event Type (module.postinstall, module.disabled, module.enabled, module.preuninstall)
 	 */
 	public function vtlib_handler($modulename, $event_type) {
-        include_once 'vtlib/Vtiger/Module.php';
-        $current_user = Users::getActiveAdminUser();
-        include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
-        $taskTypes = array();
-        $defaultModules = array('include' => array(), 'exclude'=>array());
-        $taskType= array("name"=>"CBSendMMSMSTask", "label"=>"Send SMS To MM",
-         "classname"=>"VTSendMessage2MMTask",
-         "classpath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.inc",
-         "templatepath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.tpl",
-         "modules"=>$defaultModules,
-         "sourcemodule"=>'');
-        VTTaskType::registerTaskType($taskType);
+		include_once 'vtlib/Vtiger/Module.php';
+		$current_user = Users::getActiveAdminUser();
+		include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
+		$taskTypes = array();
+		$defaultModules = array('include' => array(), 'exclude'=>array());
+		$taskType= array("name"=>"CBSendMMSMSTask", "label"=>"Send SMS To MM",
+			"classname"=>"VTSendMessage2MMTask",
+			"classpath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.inc",
+			"templatepath"=>"modules/chatwithme/workflow/VTSendMessage2MMTask.tpl",
+			"modules"=>$defaultModules,
+			"sourcemodule"=>'');
+		VTTaskType::registerTaskType($taskType);
 		if ($event_type == 'module.postinstall') {
 			// TODO Handle post installation actions
 			@copy('modules/chatwithme/cwmapi.php', 'chatwithme.php');
