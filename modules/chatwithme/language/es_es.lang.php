@@ -33,6 +33,7 @@ $mod_strings = array(
 	'LBL_FIELD_NOT_FOUND' => 'No he podido encontrar el campo indicado',
 	'LBL_NOSEARCHRESULTS' => 'No he podido encontrar ninguna información con esa condición',
 	'LBL_SEARCHRESULTS' => 'Resultados de la búsqueda:',
+	'MMInvalidUser' => 'Usuario mattermost inválido: no se ha podido encontrar el identificador del usuario mattermost.',
 	// commands
 	'delete_command' => '**borra {registro} [si]**: Borra un registro',
 	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',

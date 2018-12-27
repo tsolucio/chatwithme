@@ -33,6 +33,7 @@ $mod_strings = array(
 	'LBL_FIELD_NOT_FOUND' => 'I could not find the indicated field',
 	'LBL_NOSEARCHRESULTS' => 'I could not find any information with that search term',
 	'LBL_SEARCHRESULTS' => 'Search results:',
+	'MMInvalidUser' => 'Invalid mattermost User: mattermost user ID cannot be found.',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
