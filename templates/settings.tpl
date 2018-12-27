@@ -15,7 +15,7 @@
 					</svg>
 				</div>
 				<div class="slds-media__body">
-					<h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate"
+					<h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-truncate"
 						title="{$TITLE_MESSAGE}">{$TITLE_MESSAGE}</h1>
 				</div>
 			</div>
@@ -29,17 +29,17 @@
 <input type="hidden" name="action" value="ListView">
 <input type="hidden" name="_op" value="setmmconfig">
 <div class="slds-form-element">
-	<label class="slds-checkbox--toggle slds-grid">
-	<span class="slds-form-element__label slds-m-bottom--none">{'_active'|@getTranslatedString:$MODULE}</span>
+	<label class="slds-checkbox_toggle slds-grid">
+	<span class="slds-form-element__label slds-m-bottom_none">{'_active'|@getTranslatedString:$MODULE}</span>
 	<input type="checkbox" name="mm_active" aria-describedby="toggle-desc" {if $isActive}checked{/if} />
-	<span id="toggle-desc" class="slds-checkbox--faux_container" aria-live="assertive">
-		<span class="slds-checkbox--faux"></span>
-		<span class="slds-checkbox--on">{'LBL_ENABLED'|@getTranslatedString:'Settings'}</span>
-		<span class="slds-checkbox--off">{'LBL_DISABLED'|@getTranslatedString:'Settings'}</span>
+	<span id="toggle-desc" class="slds-checkbox_faux_container" aria-live="assertive">
+		<span class="slds-checkbox_faux"></span>
+		<span class="slds-checkbox_on">{'LBL_ENABLED'|@getTranslatedString:'Settings'}</span>
+		<span class="slds-checkbox_off">{'LBL_DISABLED'|@getTranslatedString:'Settings'}</span>
 	</span>
 	</label>
 </div>
-<div class="slds-form-element slds-m-top--small">
+<div class="slds-form-element slds-m-top_small">
 	<label class="slds-form-element__label" for="mm_cmdlang">{'_cmdlang'|@getTranslatedString:$MODULE}</label>
 	<div class="slds-form-element__control">
 		<select class="slds-select" id="mm_cmdlang" name="mm_cmdlang">
@@ -47,32 +47,32 @@
 		</select>
 	</div>
 </div>
-<div class="slds-form-element slds-m-top--small">
+<div class="slds-form-element slds-m-top_small">
 	<label class="slds-form-element__label" for="mm_username">{'_username'|@getTranslatedString:$MODULE}</label>
 	<div class="slds-form-element__control">
 		<input type="text" id="mm_username" name="mm_username" class="slds-input" value="{$username}" />
 	</div>
 </div>
-<div class="slds-form-element slds-m-top--small">
+<div class="slds-form-element slds-m-top_small">
 	<label class="slds-form-element__label" for="mm_icon_url">{'_icon_url'|@getTranslatedString:$MODULE}</label>
 	<div class="slds-form-element__control">
 		<input type="text" id="mm_icon_url" name="mm_icon_url" class="slds-input" value="{$icon_url}" />
 	</div>
 </div>
-<div class="slds-form-element slds-m-top--small">
+<div class="slds-form-element slds-m-top_small">
 	<label class="slds-form-element__label" for="mm_posturl">{'_posturl'|@getTranslatedString:$MODULE}</label>
 	<div class="slds-form-element__control">
 		<input type="text" id="mm_posturl" name="mm_posturl" class="slds-input" value="{$posturl}" />
 	</div>
 </div>
-<div class="slds-form-element slds-m-top--small">
+<div class="slds-form-element slds-m-top_small">
 	<label class="slds-form-element__label" for="mm_tokens">{'_tokens'|@getTranslatedString:$MODULE}</label>
 	<div class="slds-form-element__control">
 		<input type="text" id="mm_tokens" name="mm_tokens" class="slds-input" value="{$tokens}" />
 	</div>
 </div>
-<div class="slds-m-top--large">
-	<button type="submit" class="slds-button slds-button--brand">{'LBL_SAVE_BUTTON_LABEL'|@getTranslatedString:$MODULE}</button>
+<div class="slds-m-top_large">
+	<button type="submit" class="slds-button slds-button_brand">{'LBL_SAVE_BUTTON_LABEL'|@getTranslatedString:$MODULE}</button>
 </div>
 </form>
 {/if}
