@@ -128,6 +128,7 @@ class cbmmActiondelete extends chatactionclass {
 				);
 			}
 		}
+		$baseurl = $site_URL.'/chatwithme.php?text=deleteaction&token='.$req['token'].'&record='.$this->crmid.'&user_id='.$current_user->column_fields['mmuserid'];
 		return array(
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
@@ -138,12 +139,12 @@ class cbmmActiondelete extends chatactionclass {
 					array(
 					'name' => getTranslatedString('LBL_DELETE_BUTTON_LABEL'),
 					'integration'=> array(
-						'url'=> $site_URL.'/chatwithme.php?text=deleteaction&delete=1&token='.$req['token'].'&record='.$this->crmid,
+						'url'=> $baseurl.'&delete=1',
 					)),
 					array(
 					'name'=> getTranslatedString('LBL_CANCEL_BUTTON_LABEL'),
 					'integration'=> array(
-						'url'=> $site_URL.'/chatwithme.php?text=deleteaction&delete=0&token='.$req['token'].'&record='.$this->crmid,
+						'url'=> $baseurl.'&delete=0',
 					)),
 				)
 			)),
