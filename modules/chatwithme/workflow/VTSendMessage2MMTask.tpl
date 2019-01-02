@@ -37,7 +37,7 @@
 	</tr>
 </table><br/>
 <label>Title</label><br/>
-<input typ name ="messageTitle"/><br/>
+<input type = "text" name ="messageTitle"/><br/>
 <label>Body</label><br/>
 <textarea name ="messageBody"> </textarea>
 
