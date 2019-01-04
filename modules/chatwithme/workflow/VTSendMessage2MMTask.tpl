@@ -24,7 +24,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="small">
 	<tr>
 		<td style='padding-top: 10px;'>
-			<b>{$MOD.LBL_SELECT}&nbsp</b>
+			<b>{$MOD.LBL_SELECT}&nbsp; Meta Variables</b>
 		</td>
 		<td style='padding-top: 10px;'>
 			<select class="small" id="task_timefields">
@@ -36,11 +36,46 @@
 		</td>
 	</tr>
 </table><br/>
+<input type="checkbox" name="ephemeral" value="ephemeral"/>Msg is ephemeral<br/><br/>
+<label>Color</label>
+			<select class="small" id="messageColor" name="messageColor">
+                <option value="">Select Color</option>
+                <option value="yellow"> Yellow</option>
+                <option value="blue"> Blue</option>
+                <option value="green"> Green</option>
+			</select>  <br/>         
 <label>Title</label><br/>
-<input type = "text" name ="messageTitle"/><br/>
-<label>Body</label><br/>
+<input type ="text" name ="messageTitle"/><br/>
+<label>Body</label><br/><br/>
 <textarea name ="messageBody"> </textarea>
 
+ <table border="0" cellpadding="1" cellspacing="0" width="100%" class="small">
+    <tr>
+        <b>Buttons</b>(optional)
+    </tr>
+    <tr>
+        <td><label>First Button Title</label></td>
+        <td><input type ="text" name ="button_title1"/></td>
+
+        <td><label>First Action Url</label></td>
+        <td><input type ="text" name ="button_url1"/></td>
+    </tr>
+    <tr>
+        <td><label>Second Button Title</label></td>
+        <td><input type ="text" name ="button_title2"/></td>
+
+        <td><label>Second Action Url</label></td>
+        <td><input type ="text" name ="button_url2"/></td>
+    </tr>
+    <tr>
+        <td><label>Third Button Title</label></td>
+        <td><input type ="text" name ="button_title3"/></td>
+
+        <td><label>Third Action Url</label></td>
+        <td><input type ="text" name ="button_url3"/></td>
+    </tr>
+ </table> 
+<br>
 <script type="text/javascript" src="include/ckeditor/ckeditor.js"></script>
 <script>
     CKEDITOR.replace('messageBody',
