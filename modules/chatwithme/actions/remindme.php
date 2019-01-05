@@ -16,58 +16,63 @@
 require 'include/Webservices/Create.php';
 
 class cbmmActionRemindme extends chatactionclass {
-    public $time_start, $description, $time_end, $start_date, $dtstart, $dtend;
-    public $activitytype = "MMRemindMe"; 
-    public function getHelp() {
-        return ' - '.getTranslatedString('remindme_command', 'chatwithme');
-    }
+	public $time_start;
+	public $description;
+	public $time_end;
+	public $start_date;
+	public $dtstart;
+	public $dtend;
+	public $activitytype = 'MMRemindMe';
+	public function getHelp() {
+		return ' - '.getTranslatedString('remindme_command', 'chatwithme');
+	}
 
-    public function process() {
-        global $log,$adb,$current_user; 
-        $req = getMMRequest();
-        $prm = parseMMMsg($req['text']);
-        if (in_array('[at]', $prm)) {
-            $desc = array_slice($prm, 1, -3);
-            $description = implode(" ", $desc);
-            $subject = substr($description, 0, 40);
-            $position = array_keys($prm, '[at]');
-            $rectime_start = $prm[$position[0] + 1].' '.$prm[$position[0] + 2];
-            $date_number = strtr($rectime_start, '/', '-');
-            $time_start = date('H:i', strtotime($date_number));
-            $date_start = date('Y-m-d', strtotime($date_number));
-            $dtstart = $rectime_start;
-            $dtend =date('Y-m-d H:i', strtotime("+1 minutes", strtotime($date_number))); 
-            $time_end = date('H:i', strtotime("+1 minutes", strtotime($rectime_start)));
-        }
-        if (in_array('[in]', $prm)) {
-            $desc = array_slice($prm, 1, -2);
-            $description = implode(" ", $desc);
-            $subject = substr($description, 0, 4);
-            $position = array_keys($prm, '[in]');
-            $time_startAdd = str_replace('m', '', $prm[$position[0] + 1]);
-            $temprec = str_replace('m', '', $prm[$position[0] + 1]);
-            $inc = $temprec+1;
-            $current_time = date('Y-m-d H:i');
-            $date_number = strtr($current_time, '/', '-');
-            $time_start = date('H:i', strtotime("+".$time_startAdd."minutes", strtotime($date_number)));
-            $dtstart = $current_time;
-            $date_start = date('Y-M-d', strtotime($date_number));
-            $time_end = date('H:i:s', strtotime("+".$inc."minutes", strtotime($current_time)));
-            $dtend = date('Y-m-d H:i', strtotime("+".$inc."minutes", strtotime($current_time)));
-        }
-        $data = array(
-        'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
-        'subject' => $subject, 
-        'activitytype' =>$this->activitytype, 
-        'time_start' => $time_start, 
-        'date_start' => $date_start, 
-        'time_end' =>$time_end,
-        'dtstart' => $dtstart,
-        'dtend' => $dtend
-        );
-        $log ->fatal($data);
-        vtws_create('cbCalendar', $data, $current_user);
-        return true;
-    }
+	public function process() {
+		global $log,$adb,$current_user;
+		$req = getMMRequest();
+		$prm = parseMMMsg($req['text']);
+		if (in_array('[at]', $prm)) {
+			$desc = array_slice($prm, 1, -3);
+			$description = implode(' ', $desc);
+			$subject = substr($description, 0, 40);
+			$position = array_keys($prm, '[at]');
+			$rectime_start = $prm[$position[0] + 1].' '.$prm[$position[0] + 2];
+			$date_number = strtr($rectime_start, '/', '-');
+			$time_start = date('H:i', strtotime($date_number));
+			$date_start = date('Y-m-d', strtotime($date_number));
+			$dtstart = $rectime_start;
+			$dtend =date('Y-m-d H:i', strtotime('+1 minutes', strtotime($date_number)));
+			$time_end = date('H:i', strtotime('+1 minutes', strtotime($rectime_start)));
+		}
+		if (in_array('[in]', $prm)) {
+			$desc = array_slice($prm, 1, -2);
+			$description = implode(' ', $desc);
+			$subject = substr($description, 0, 4);
+			$position = array_keys($prm, '[in]');
+			$time_startAdd = str_replace('m', '', $prm[$position[0] + 1]);
+			$temprec = str_replace('m', '', $prm[$position[0] + 1]);
+			$inc = $temprec+1;
+			$current_time = date('Y-m-d H:i');
+			$date_number = strtr($current_time, '/', '-');
+			$time_start = date('H:i', strtotime('+'.$time_startAdd.'minutes', strtotime($date_number)));
+			$dtstart = $current_time;
+			$date_start = date('Y-M-d', strtotime($date_number));
+			$time_end = date('H:i:s', strtotime('+'.$inc.'minutes', strtotime($current_time)));
+			$dtend = date('Y-m-d H:i', strtotime('+'.$inc.'minutes', strtotime($current_time)));
+		}
+		$data = array(
+			'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
+			'subject' => $subject,
+			'activitytype' =>$this->activitytype,
+			'time_start' => $time_start,
+			'date_start' => $date_start,
+			'time_end' =>$time_end,
+			'dtstart' => $dtstart,
+			'dtend' => $dtend
+		);
+		$log ->fatal($data);
+		vtws_create('cbCalendar', $data, $current_user);
+		return true;
+	}
 }
 ?>

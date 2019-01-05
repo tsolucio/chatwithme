@@ -16,44 +16,43 @@
 
 class cbmmActionremindmeaction extends chatactionclass {
 
-    public function addDefault() {
-        return false;
-    }
+	public function addDefault() {
+		return false;
+	}
 
-    public function getResponse() {
-        global $current_user, $log, $adb;
-        $ret = "";
-        if(isset($_REQUEST['record']) && isset($_REQUEST['event'])) {
-            $record = vtlib_purify($_REQUEST['record']);
-            $event = vtlib_purify($_REQUEST['event']);
-            if ($event == 'postpone') {
-                $resultfromdb = $adb->pquery("select time_start, dtstart from vtiger_activity where activityid =$record ", array());
-                $updatedstarttime = date('H:i', strtotime("+10 minutes", strtotime($resultfromdb ->fields['time_start'])));
-                $updatedtstart = date('Y-m-d H:i', strtotime("+10 minutes", strtotime($resultfromdb ->fields['dtstart'])));
-                $sql = "update vtiger_activity set  time_start = '$updatedstarttime', dtstart = '$updatedtstart'  where activityid =$record";
-                $result = $adb->pquery($sql, array());
-                if($result) {
-                    $ret = array(
-                    'update' => array(
-                    'color' => getMMMsgColor('blue'),
-                    'message' => 'Reminder Postponed',
-                    ),
-                    );
-                }
-            }
-            elseif ($event == 'discard') {
-                $result = $adb->pquery("update vtiger_activity set status = 'completed' where activityid =$record", array());
-                if($result) {
-                    $ret = array(
-                    'update' => array(
-                    'color' => getMMMsgColor('yellow'),
-                    'message' => 'Reminder Discarded',
-                    ),
-                    );
-                }    
-            }
-            return $ret;
-        }
-    }
+	public function getResponse() {
+		global $current_user, $log, $adb;
+		$ret = "";
+		if (isset($_REQUEST['record']) && isset($_REQUEST['event'])) {
+			$record = vtlib_purify($_REQUEST['record']);
+			$event = vtlib_purify($_REQUEST['event']);
+			if ($event == 'postpone') {
+				$resultfromdb = $adb->pquery("select time_start, dtstart from vtiger_activity where activityid =$record ", array());
+				$updatedstarttime = date('H:i', strtotime("+10 minutes", strtotime($resultfromdb ->fields['time_start'])));
+				$updatedtstart = date('Y-m-d H:i', strtotime("+10 minutes", strtotime($resultfromdb ->fields['dtstart'])));
+				$sql = "update vtiger_activity set  time_start = '$updatedstarttime', dtstart = '$updatedtstart'  where activityid =$record";
+				$result = $adb->pquery($sql, array());
+				if ($result) {
+					$ret = array(
+					'update' => array(
+					'color' => getMMMsgColor('blue'),
+					'message' => 'Reminder Postponed',
+					),
+					);
+				}
+			} elseif ($event == 'discard') {
+				$result = $adb->pquery("update vtiger_activity set status = 'completed' where activityid =$record", array());
+				if ($result) {
+					$ret = array(
+					'update' => array(
+					'color' => getMMMsgColor('yellow'),
+					'message' => 'Reminder Discarded',
+					),
+					);
+				}
+			}
+			return $ret;
+		}
+	}
 }
 ?>
