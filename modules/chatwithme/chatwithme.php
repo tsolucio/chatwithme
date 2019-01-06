@@ -18,6 +18,7 @@ class chatwithme extends CRMEntity {
 	 * @param String Event Type (module.postinstall, module.disabled, module.enabled, module.preuninstall)
 	 */
 	public function vtlib_handler($modulename, $event_type) {
+		global $adb;
 		if ($event_type == 'module.postinstall') {
 			// TODO Handle post installation actions
 			@copy('modules/chatwithme/cwmapi.php', 'chatwithme.php');
@@ -57,6 +58,35 @@ class chatwithme extends CRMEntity {
 			if ($field) {
 				$field->setPicklistValues(array('MMRemindMe'));
 			}
+			// workflows
+			$workflowManager = new VTWorkflowManager($adb);
+			$taskManager = new VTTaskManager($adb);
+			// Send MM Reminder workflow
+			$calendarWorkflow = $workflowManager->newWorkFlow('cbCalendar');
+			$calendarWorkflow->test = '[{"fieldname":"activitytype","operation":"is","value":"MMRemindMe","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"eventstatus","operation":"is not","value":"Completed","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"dtstart","operation":"more than hours before","value":"72","valuetype":"expression","joincondition":"and","groupid":"0"}]';
+			$calendarWorkflow->description = 'Send MM Reminder';
+			$calendarWorkflow->executionCondition = VTWorkflowManager::$ON_SCHEDULE;
+			$calendarWorkflow->defaultworkflow = 0;
+			$calendarWorkflow->schtypeid = 8;
+			$calendarWorkflow->schminuteinterval = 5;
+			$calendarWorkflow->purpose = 'Send RemindMe message to mattermost';
+			$workflowManager->save($calendarWorkflow);
+			$task = $taskManager->createTask('CBSendMMMSGTask', $calendarWorkflow->id);
+			$task->active = true;
+			$task->summary = 'Send MM Reminder';
+			$task->executeImmediately = true;
+			$task->messageTitle = '$subject';
+			$task->messageBody = '$description';
+			$task->messageColor = 'blue';
+			$task->button_title1 = 'Postpone';
+			$task->button_url1 = '&text=remindmeaction&event=postpone';
+			$task->button_title2 = 'Discard';
+			$task->button_url2 = '&text=remindmeaction&event=discard';
+			$task->button_title3 = '';
+			$task->button_url3 = '';
+			$task->ephemeral = '';
+			$task->reevaluate = 0;
+			$taskManager->saveTask($task);
 		} elseif ($event_type == 'module.disabled') {
 			// TODO Handle actions when this module is disabled.
 			@unlink('chatwithme.php');
