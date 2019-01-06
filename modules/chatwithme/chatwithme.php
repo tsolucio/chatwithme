@@ -37,11 +37,11 @@ class chatwithme extends CRMEntity {
 			VTTaskType::registerTaskType($taskType);
 			$modname = 'Users';
 			$module = Vtiger_Module::getInstance($modname);
-			$block = Vtiger_Block::getInstance('LBL_USER_ADV_OPTIONS', $module);
 			$field = Vtiger_Field::getInstance('mmuserid', $module);
 			if ($field) {
 				$this->ExecuteQuery('update vtiger_field set presence=2 where fieldid=?', array($field->id));
 			} else {
+				$block = Vtiger_Block::getInstance('LBL_USER_ADV_OPTIONS', $module);
 				$fieldInstance = new Vtiger_Field();
 				$fieldInstance->name = 'mmuserid';
 				$fieldInstance->label = 'mmuserid';
@@ -50,6 +50,12 @@ class chatwithme extends CRMEntity {
 				$fieldInstance->displaytype = 1;
 				$fieldInstance->typeofdata = 'V~O';
 				$block->addField($fieldInstance);
+			}
+			$modname = 'cbCalendar';
+			$module = Vtiger_Module::getInstance($modname);
+			$field = Vtiger_Field::getInstance('activitytype', $module);
+			if ($field) {
+				$field->setPicklistValues(array('MMRemindMe'));
 			}
 		} elseif ($event_type == 'module.disabled') {
 			// TODO Handle actions when this module is disabled.

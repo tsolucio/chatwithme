@@ -34,11 +34,17 @@ $mod_strings = array(
 	'LBL_NOSEARCHRESULTS' => 'I could not find any information with that search term',
 	'LBL_SEARCHRESULTS' => 'Search results:',
 	'MMInvalidUser' => 'Invalid mattermost User: mattermost user ID cannot be found.',
+	'OkWillDo' => 'Ok, will do :-)',
+	'Reminder Postponed' => 'Reminder Postponed. Get back to you soon.',
+	'Reminder Discarded' => 'Reminder Discarded. I will not bother you about this again.',
+	'Reminder Command Not Recognized' => '**ERROR*: Reminder command not recognized',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
 	'find_command1' => '**find [{module}] {term}**: search the given term globally or in the given module',
 	'find_command2' => '**find module {field}{condition}{value}**: search the {field} on the module for the {value}, where condition can be =|>|>=|<|<=|%',
 	'see_command' => '**see {record}**: See the details of a record',
+	'remindme_command1' => '**remindme {about this} [at] $1 h:m**: will send a message more or less **AT** the indicated time',
+	'remindme_command2' => '**remindme {about this} [in] Dd Hh Mm**: will send a message more or less **IN** D days, H hours, and M minutes',
 );
 ?>

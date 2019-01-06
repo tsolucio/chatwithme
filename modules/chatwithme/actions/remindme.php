@@ -16,63 +16,192 @@
 require 'include/Webservices/Create.php';
 
 class cbmmActionRemindme extends chatactionclass {
-	public $time_start;
-	public $description;
-	public $time_end;
-	public $start_date;
-	public $dtstart;
-	public $dtend;
-	public $activitytype = 'MMRemindMe';
+	private const ACTIVITYTYPE = 'MMRemindMe';
+	private $status;
+	private const STATUS_FOUNDAT = 1;
+	private const STATUS_FOUNDIN = 2;
+	private const STATUS_BADFORMAT = 3;
+
 	public function getHelp() {
-		return ' - '.getTranslatedString('remindme_command', 'chatwithme');
+		global $current_user;
+		$msg = str_replace('$1', $current_user->date_format, getTranslatedString('remindme_command1', 'chatwithme'));
+		return ' - '.$msg."\n".' - '.getTranslatedString('remindme_command2', 'chatwithme');
 	}
 
 	public function process() {
-		global $log,$adb,$current_user;
+		global $current_user;
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		if (in_array('[at]', $prm)) {
-			$desc = array_slice($prm, 1, -3);
+			$atpos = array_search('[at]', $prm);
+			$desc = array_slice($prm, 1, -(count($prm)-$atpos));
 			$description = implode(' ', $desc);
-			$subject = substr($description, 0, 40);
-			$position = array_keys($prm, '[at]');
-			$rectime_start = $prm[$position[0] + 1].' '.$prm[$position[0] + 2];
-			$date_number = strtr($rectime_start, '/', '-');
-			$time_start = date('H:i', strtotime($date_number));
-			$date_start = date('Y-m-d', strtotime($date_number));
-			$dtstart = $rectime_start;
-			$dtend =date('Y-m-d H:i', strtotime('+1 minutes', strtotime($date_number)));
-			$time_end = date('H:i', strtotime('+1 minutes', strtotime($rectime_start)));
-		}
-		if (in_array('[in]', $prm)) {
-			$desc = array_slice($prm, 1, -2);
+			$subject = substr($description, 0, 60);
+			$timespec = array_slice($prm, $atpos+1);
+			if ($this->isValidDate($timespec)) {
+				for ($tsp=0; $tsp<count($timespec); $tsp++) {
+					if (strlen($timespec[$tsp])<3) {
+						$timespec[$tsp] = '0'.$timespec[$tsp];
+					}
+				}
+				list($h, $i) = explode(':', $timespec[1]);
+				switch ($current_user->date_format) {
+					case 'dd-mm-yyyy':
+						list($d, $m, $y) = explode('-', $timespec[0]);
+						$dtstart=date('d-m-Y H:i', mktime($h, $i, 0, $m, $d, $y));
+						$dtend=date('d-m-Y H:i', mktime($h, $i+1, 0, $m, $d, $y));
+						break;
+					case 'mm-dd-yyyy':
+						list($m, $d, $y) = explode('-', $timespec[0]);
+						$dtstart=date('m-d-Y H:i', mktime($h, $i, 0, $m, $d, $y));
+						$dtend=date('m-d-Y H:i', mktime($h, $i+1, 0, $m, $d, $y));
+						break;
+					case 'yyyy-mm-dd':
+					default:
+						list($y, $m, $d) = explode('-', $timespec[0]);
+						$dtstart=date('Y-m-d H:i', mktime($h, $i, 0, $m, $d, $y));
+						$dtend=date('Y-m-d H:i', mktime($h, $i+1, 0, $m, $d, $y));
+						break;
+				}
+				$this->status = self::STATUS_FOUNDAT;
+			} else {
+				$this->status = self::STATUS_BADFORMAT;
+			}
+		} elseif (in_array('[in]', $prm)) {
+			$inpos = array_search('[in]', $prm);
+			$desc = array_slice($prm, 1, -(count($prm)-$inpos));
 			$description = implode(' ', $desc);
-			$subject = substr($description, 0, 4);
-			$position = array_keys($prm, '[in]');
-			$time_startAdd = str_replace('m', '', $prm[$position[0] + 1]);
-			$temprec = str_replace('m', '', $prm[$position[0] + 1]);
-			$inc = $temprec+1;
-			$current_time = date('Y-m-d H:i');
-			$date_number = strtr($current_time, '/', '-');
-			$time_start = date('H:i', strtotime('+'.$time_startAdd.'minutes', strtotime($date_number)));
-			$dtstart = $current_time;
-			$date_start = date('Y-M-d', strtotime($date_number));
-			$time_end = date('H:i:s', strtotime('+'.$inc.'minutes', strtotime($current_time)));
-			$dtend = date('Y-m-d H:i', strtotime('+'.$inc.'minutes', strtotime($current_time)));
+			$subject = substr($description, 0, 60);
+			$timespec = array_slice($prm, $inpos+1);
+			$incmin = $this->convertToMinutes($timespec);
+			$dtstart = date('Y-m-d H:i:s', strtotime('+'.$incmin.'minutes'));
+			$dtend = date('Y-m-d H:i:s', strtotime('+'.($incmin+5).'minutes'));
+			$strdatetime = new DateTimeField($dtstart);
+			$dtstart = $strdatetime->getDisplayDateTimeValue();
+			$enddatetime = new DateTimeField($dtend);
+			$dtend = $enddatetime->getDisplayDateTimeValue();
+			$this->status = self::STATUS_FOUNDIN;
+		} else {
+			$this->status = self::STATUS_BADFORMAT;
 		}
-		$data = array(
-			'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
-			'subject' => $subject,
-			'activitytype' =>$this->activitytype,
-			'time_start' => $time_start,
-			'date_start' => $date_start,
-			'time_end' =>$time_end,
-			'dtstart' => $dtstart,
-			'dtend' => $dtend
-		);
-		$log ->fatal($data);
-		vtws_create('cbCalendar', $data, $current_user);
+		if ($this->status != self::STATUS_BADFORMAT) {
+			$data = array(
+				'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
+				'subject' => $subject,
+				'description' => $description,
+				'activitytype' => self::ACTIVITYTYPE,
+				'eventstatus' => 'Planned',
+				'dtstart' => $dtstart,
+				'dtend' => $dtend
+			);
+			vtws_create('cbCalendar', $data, $current_user);
+		}
 		return true;
+	}
+
+	public function getResponse() {
+		global $current_user;
+		$req = getMMRequest();
+		switch ($this->status) {
+			case self::STATUS_FOUNDIN:
+			case self::STATUS_FOUNDAT:
+				$ret = array(
+					'response_type' => 'in_channel',
+					'text' => getTranslatedString('OkWillDo', 'chatwithme'),
+				);
+				break;
+			case self::STATUS_BADFORMAT:
+			default:
+				$ret = getMMDoNotUnderstandMessage($this->getHelp());
+				break;
+		}
+		return $ret;
+	}
+
+	private function isValidDate($timespec) {
+		global $current_user;
+		switch ($current_user->date_format) {
+			case 'dd-mm-yyyy':
+				if (preg_match('/^(0?[1-9]|1[0-2])-(0?[1-9]|[1-2][0-9]|3[0-1])-[0-9]{4}$/', $timespec[0])) {
+					list($d, $m, $y) = explode('-', $timespec[0]);
+				} else {
+					return false;
+				}
+				break;
+			case 'mm-dd-yyyy':
+				if (preg_match('/^(0?[1-9]|[1-2][0-9]|3[0-1])-(0?[1-9]|1[0-2])-[0-9]{4}$/', $timespec[0])) {
+					list($m, $d, $y) = explode('-', $timespec[0]);
+				} else {
+					return false;
+				}
+				break;
+			case 'yyyy-mm-dd':
+			default:
+				if (preg_match('/^[0-9]{4}-(0?[1-9]|1[0-2])-(0?[1-9]|[1-2][0-9]|3[0-1])$/', $timespec[0])) {
+					list($y, $m, $d) = explode('-', $timespec[0]);
+				} else {
+					return false;
+				}
+				break;
+		}
+		if (checkdate($m, $d, $y)) {
+			if (preg_match('/^([0-1]?[1-9]|2[0-3]):([0-5]?[1-9])$/', $timespec[1])) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	private function convertToMinutes($timespec) {
+		for ($tsp=0; $tsp<count($timespec); $tsp++) {
+			if (strlen($timespec[$tsp])<3) {
+				$timespec[$tsp] = '0'.$timespec[$tsp];
+			}
+			$timespec[$tsp] = strtolower($timespec[$tsp]);
+		}
+		if (substr($timespec[0], -1)=='d') {
+			$days = array_shift($timespec);
+			$d = (int)substr($days, 0, strlen($days)-1)*1440;
+		} else {
+			$d = 0;
+		}
+		$timespec = implode(' ', $timespec);
+		$ts = DateTime::createFromFormat('H\h i\m', $timespec);
+		if ($ts) {
+			$ts = $ts->format('H:i:s');
+		} else {
+			$ts = DateTime::createFromFormat('i\m', $timespec);
+			if ($ts) {
+				$ts = $ts->format('H:i:s');
+			} else {
+				$ts = DateTime::createFromFormat('i\m s\s', $timespec);
+				if ($ts) {
+					$ts = $ts->format('H:i:s');
+				} else {
+					$ts = DateTime::createFromFormat('H\h i\m s\s', $timespec);
+					if ($ts) {
+						$ts = $ts->format('H:i:s');
+					} else {
+						$ts = DateTime::createFromFormat('H\h', $timespec);
+						if ($ts) {
+							$ts = $ts->format('H:i:s');
+						} else {
+							$ts = DateTime::createFromFormat('H\h s\s', $timespec);
+							if ($ts) {
+								$ts = $ts->format('H:i:s');
+							} else {
+								$ts = '0:0:0'; // 's\s'
+							}
+						}
+					}
+				}
+			}
+		}
+		list($h, $m, $i) = explode(':', $ts);
+		return ($d+$h*60+$m);
 	}
 }
 ?>

@@ -20,9 +20,11 @@ class VTSendMessage2MMTask extends VTTask {
 	}
 
 	public function doTask(&$entity) {
-		global $current_user, $log, $configmm;
+		global $current_user, $log, $configmm, $site_URL;
+		$data = $entity->getData();
+		$usrid = explode('x', $data['assigned_user_id']);
 		$focus = new Users();
-		$focus->retrieve_entity_info($current_user->id, 'Users');
+		$focus->retrieve_entity_info($usrid[1], 'Users');
 		if (empty($configmm)) {
 			$configmm = getMMSettings();
 		}
@@ -50,12 +52,13 @@ class VTSendMessage2MMTask extends VTTask {
 			if (!empty($this->messageColor)) {
 				$textdata['attachments'][0]['color'] = getMMMsgColor($this->messageColor);
 			}
+			$baseurl = $site_URL.'/chatwithme.php?token='.$configmm['token'][0].'&record='.$crmid[1].'&user_id='.$focus->column_fields['mmuserid'];
 			if (!empty($this->button_title1) && !empty($this->button_url1)) {
 				$textdata['attachments'][0]['actions'] = array(
 					array(
 						'name' => $this->button_title1,
 						'integration'=> array(
-							'url'=> $this->button_url2.'&token='.$configmm['token'][0].'&user_id='.$focus->column_fields['mmuserid'].'&record='.$crmid[1],
+							'url'=> $baseurl.$this->button_url1,
 						)
 					)
 				);
@@ -65,7 +68,7 @@ class VTSendMessage2MMTask extends VTTask {
 					array(
 						'name' => $this->button_title2,
 						'integration'=> array(
-							'url'=> $this->button_url2.'&token='.$configmm['token'][0].'&user_id='.$focus->column_fields['mmuserid'].'&record='.$crmid[1],
+							'url'=> $baseurl.$this->button_url2,
 						)
 					)
 				);
@@ -76,7 +79,7 @@ class VTSendMessage2MMTask extends VTTask {
 					array(
 						'name' => $this->button_title3,
 						'integration'=> array(
-							'url'=> $this->button_url3.'&token='.$configmm['token'][0].'&user_id='.$focus->column_fields['mmuserid'].'&record='.$crmid[1],
+							'url'=> $baseurl.$this->button_url3,
 						)
 					)
 				);

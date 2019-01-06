@@ -20,76 +20,105 @@
 <script type="text/javascript" charset="utf-8">
 	var moduleName = '{$entityName}';
 </script>
-<h2>{'LBL_MSG'|@getTranslatedString:'com_vtiger_workflow'}</h2>
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="small">
-	<tr>
-		<td style='padding-top: 10px;'>
-			<b>{$MOD.LBL_SELECT}&nbsp; Meta Variables</b>
-		</td>
-		<td style='padding-top: 10px;'>
-			<select class="small" id="task_timefields">
-				<option value="">{'Select Meta Variables'|@getTranslatedString:$MODULE_NAME}</option>
-				{foreach key=META_LABEL item=META_VALUE from=$META_VARIABLES}
-				<option value="{$META_VALUE}">{$META_LABEL|@getTranslatedString:$MODULE_NAME}</option>
-				{/foreach}
+<script src="modules/chatwithme/workflow/chatwithmetask.js" type="text/javascript" charset="utf-8"></script>
+<br/>
+<div class="slds-grid slds-gutters">
+	<div class="slds-form-element slds-col">
+		<div class="slds-form-element__control">
+			<label class="slds-checkbox__label" for="messageColor"><b>Color</b></label>
+			<select class="slds-select" id="messageColor" name="messageColor">
+				<option value="green" {if $task->messageColor=='green'}selected{/if}>Green</option>
+				<option value="blue" {if $task->messageColor=='blue'}selected{/if}>Blue</option>
+				<option value="yellow" {if $task->messageColor=='yellow'}selected{/if}>Yellow</option>
+				<option value="red" {if $task->messageColor=='red'}selected{/if}>Red</option>
 			</select>
-		</td>
-	</tr>
-</table><br/>
-<input type="checkbox" name="ephemeral" value="ephemeral"/>Msg is ephemeral<br/><br/>
-<label>Color</label>
-<select class="small" id="messageColor" name="messageColor">
-	<option value="">Select Color</option>
-	<option value="yellow">Yellow</option>
-	<option value="blue">Blue</option>
-	<option value="green">Green</option>
-</select>  <br/>
-<label>Title</label><br/>
-<input type ="text" name ="messageTitle"/><br/>
-<label>Body</label><br/><br/>
-<textarea name ="messageBody"> </textarea>
-
-<table border="0" cellpadding="1" cellspacing="0" width="100%" class="small">
-	<tr>
-		<b>Buttons</b>(optional)
-	</tr>
-	<tr>
-		<td><label>First Button Title</label></td>
-		<td><input type="text" name="button_title1"/></td>
-		<td><label>First Action Url</label></td>
-		<td><input type="text" name="button_url1"/></td>
-	</tr>
-	<tr>
-		<td><label>Second Button Title</label></td>
-		<td><input type="text" name="button_title2"/></td>
-		<td><label>Second Action Url</label></td>
-		<td><input type="text" name="button_url2"/></td>
-	</tr>
-	<tr>
-		<td><label>Third Button Title</label></td>
-		<td><input type="text" name="button_title3"/></td>
-		<td><label>Third Action Url</label></td>
-		<td><input type="text" name="button_url3"/></td>
-	</tr>
-</table> 
+		</div>
+	</div>
+	<div class="slds-form-element slds-col">
+		<div class="slds-form-element__control slds-m-top_medium">
+			<div class="slds-checkbox">
+				<input type="checkbox" name="ephemeral" id="ephemeral" value="ephemeral" {if $task->ephemeral=='ephemeral'}checked{/if} />
+				<label class="slds-checkbox__label" for="ephemeral">
+				<span class="slds-checkbox_faux"></span>
+				<span class="slds-form-element__label"><b>Msg is ephemeral</b></span>
+				</label>
+			</div>
+		</div>
+	</div>
+</div>
+<br/>
+<legend class="slds-form-element__label"><b>Title</b></legend><br/>
+<div class="slds-form-element slds-col">
+	<div class="slds-form-element__control">
+		<input id="messageTitle" name="messageTitle" class="slds-input" type="text" value="{$task->messageTitle}" />
+	</div>
+</div>
+<br/>
+<legend class="slds-form-element__label"><b>Body</b></legend><br/>
+<div class="slds-grid slds-gutters">
+	<div class="slds-form-element slds-col">
+		<span id="task-fieldnames-busyicon"><b>{$MOD.LBL_LOADING}</b><img src="{'vtbusy.gif'|@vtiger_imageurl:$THEME}" border="0"></span>
+		<select id='task-fieldnames' class="slds-select" style="display: none;"><option value=''>{$MOD.LBL_SELECT_OPTION_DOTDOTDOT}</option></select>
+	</div>
+	<div class="slds-form-element slds-col">
+		<select class="slds-select" id="task_timefields">
+			<option value="">{'Select Meta Variables'|@getTranslatedString:$MODULE_NAME}</option>
+			{foreach key=META_LABEL item=META_VALUE from=$META_VARIABLES}
+			<option value="{$META_VALUE}">{$META_LABEL|@getTranslatedString:$MODULE_NAME}</option>
+			{/foreach}
+		</select>
+	</div>
+</div>
+<textarea id ="messageBody" name ="messageBody">{$task->messageBody}</textarea>
+<br/>
+<legend class="slds-form-element__label"><b>Buttons</b>&nbsp;(optional)</legend><br/>
+<div class="slds-grid slds-gutters">
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_title1">First Button Title</label>
+		<div class="slds-form-element__control">
+			<input id="button_title1" name="button_title1" class="slds-input" type="text" value="{$task->button_title1}" />
+		</div>
+	</div>
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_url1">First Button Parameters</label>
+		<div class="slds-form-element__control">
+			<input id="button_url1" name="button_url1" class="slds-input" type="text" value="{$task->button_url1}" />
+		</div>
+	</div>
+</div>
+<div class="slds-grid slds-gutters">
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_title2">Second Button Title</label>
+		<div class="slds-form-element__control">
+			<input id="button_title2" name="button_title2" class="slds-input" type="text" value="{$task->button_title2}" />
+		</div>
+	</div>
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_url2">Second Button Parameters</label>
+		<div class="slds-form-element__control">
+			<input id="button_url2" name="button_url2" class="slds-input" type="text" value="{$task->button_url2}" />
+		</div>
+	</div>
+</div>
+<div class="slds-grid slds-gutters">
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_title3">Third Button Title</label>
+		<div class="slds-form-element__control">
+			<input id="button_title3" name="button_title3" class="slds-input" type="text" value="{$task->button_title3}" />
+		</div>
+	</div>
+	<div class="slds-form-element slds-col">
+		<label class="slds-form-element__label" for="button_url3">Third Button Parameters</label>
+		<div class="slds-form-element__control">
+			<input id="button_url3" name="button_url3" class="slds-input" type="text" value="{$task->button_url3}" />
+		</div>
+	</div>
+</div>
 <br>
 <script type="text/javascript" src="include/ckeditor/ckeditor.js"></script>
 <script>
-	CKEDITOR.replace('messageBody',
-	{ldelim}
-		extraPlugins : 'uicolor',
-		uiColor: '#dfdff1',
-			on : {ldelim}
-				instanceReady : function( ev ) {ldelim}
-					this.dataProcessor.writer.setRules( 'p',  {ldelim}
-					indent : false,
-					breakBeforeOpen : false,
-					breakAfterOpen : false,
-					breakBeforeClose : false,
-					breakAfterClose : false
-				{rdelim});
-			{rdelim}
-		{rdelim}
+	CKEDITOR.replace('messageBody', {ldelim}
+		customConfig: '../../modules/chatwithme/workflow/ckeditor_config.js'
 	{rdelim});
-	var oCKeditor{'messageBody'} = CKEDITOR.instances['messageBody'];
+	var oCKeditor = CKEDITOR.instances['messageBody'];
 </script>

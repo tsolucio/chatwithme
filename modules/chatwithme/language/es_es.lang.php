@@ -34,11 +34,17 @@ $mod_strings = array(
 	'LBL_NOSEARCHRESULTS' => 'No he podido encontrar ninguna información con esa condición',
 	'LBL_SEARCHRESULTS' => 'Resultados de la búsqueda:',
 	'MMInvalidUser' => 'Usuario mattermost inválido: no se ha podido encontrar el identificador del usuario mattermost.',
+	'OkWillDo' => 'Vale, así lo haré :-)',
+	'Reminder Postponed' => 'Recordatorio Atrasado. Te digo algo pronto.',
+	'Reminder Discarded' => 'Recordatorio Descartado. No te volveré a avisar de esto.',
+	'Reminder Command Not Recognized' => '**ERROR*: Comando de recordatorio no reconocido',
 	// commands
 	'delete_command' => '**borra {registro} [si]**: Borra un registro',
 	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',
 	'find_command1' => '**busca [{módulo}] {término}**: Busca el término dado globalmente o en el módulo dado',
 	'find_command2' => '**busca módulo {campo}{condición}{valor}**: Busca el {campo} del módulo con el {valor}, donde condición puede ser =|>|>=|<|<=|%',
 	'see_command' => '**ver {registro}**: Ver el detalle de un registro',
+	'remindme_command1' => '**avisame {sobre esto} [at] $1 h:m**: enviará un mensaje más o menos **A** la hora indicada.',
+	'remindme_command2' => '**avisame {sobre esto} [in] Dd Hh Mm**: enviará un mensaje más o menos **EN** D días, H horas y M minutos',
 );
 ?>
