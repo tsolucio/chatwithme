@@ -56,7 +56,7 @@ class VTSendMessage2MMTask extends VTTask {
 			if (!empty($this->button_title1) && !empty($this->button_url1)) {
 				$textdata['attachments'][0]['actions'] = array(
 					array(
-						'name' => $this->button_title1,
+						'name' => getTranslatedString($this->button_title1, 'chatwithme'),
 						'integration'=> array(
 							'url'=> $baseurl.$this->button_url1,
 						)
@@ -66,7 +66,7 @@ class VTSendMessage2MMTask extends VTTask {
 			if (!empty($this->button_title2) && !empty($this->button_url2)) {
 				$button2 = array(
 					array(
-						'name' => $this->button_title2,
+						'name' => getTranslatedString($this->button_title2, 'chatwithme'),
 						'integration'=> array(
 							'url'=> $baseurl.$this->button_url2,
 						)
@@ -77,7 +77,7 @@ class VTSendMessage2MMTask extends VTTask {
 			if (!empty($this->button_title3) && !empty($this->button_url3)) {
 				$button3 = array(
 					array(
-						'name' => $this->button_title3,
+						'name' => getTranslatedString($this->button_title3, 'chatwithme'),
 						'integration'=> array(
 							'url'=> $baseurl.$this->button_url3,
 						)
