@@ -14,6 +14,7 @@
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
 include_once 'include/Webservices/CustomerPortalWS.php';
+include_once 'include/integrations/zendesk/Zendesk.php';
 
 class cbmmActionfind extends chatactionclass {
 	private $status;
@@ -49,6 +50,11 @@ class cbmmActionfind extends chatactionclass {
 			foreach ($modules as $modname) {
 				$modulesi18n[$modname] = getTranslatedString($modname, $modname);
 			}
+			$zd = new corebos_zendesk();
+			if ($zd->isActive()) {
+				$modulesi18n['Zendesk'] = 'Zendesk';
+				$modules['Zendesk'] = 'Zendesk';
+			}
 			if (in_array($prm[1], $modulesi18n)) {
 				$prm[1] = array_search($prm[1], $modulesi18n);
 			}
@@ -58,7 +64,7 @@ class cbmmActionfind extends chatactionclass {
 					list ($field, $value) = explode($comp, $prm[2]);
 					$mobj = Vtiger_Module::getInstance($prm[1]);
 					$fobj = Vtiger_Field::getInstance($field, $mobj);
-					if ($fobj) {
+					if ($fobj || $prm[1]=='Zendesk') {
 						$this->status = self::STATUS_FINDITFIELDMODULE;
 						for ($t=3; $t<$numprms; $t++) {
 							$value = $value.' '.$prm[$t];
@@ -111,15 +117,24 @@ class cbmmActionfind extends chatactionclass {
 				$ret = $this->getSearchResultMsg($rdo);
 				break;
 			case self::STATUS_FINDITFIELDMODULE:
-				$ret = $this->getFieldQueryMsg();
+				if ($this->condition['module']=='Zendesk') {
+					$rdo = $this->getZendeskResults();
+					$ret = $this->getSearchResultMsg($rdo);
+				} else {
+					$ret = $this->getFieldQueryMsg();
+				}
 				break;
 			case self::STATUS_FINDITGLOBALMODULE:
-				$rdo = unserialize(vtws_getSearchResults(
-					$this->condition['term'],
-					$this->condition['module'],
-					array('userId'=>vtws_getEntityId('Users').'x'.$current_user->id, 'accountId' => '0x0', 'contactId' => '0x0'),
-					$current_user
-				));
+				if ($this->condition['module']=='Zendesk') {
+					$rdo = $this->getZendeskResults();
+				} else {
+					$rdo = unserialize(vtws_getSearchResults(
+						$this->condition['term'],
+						$this->condition['module'],
+						array('userId'=>vtws_getEntityId('Users').'x'.$current_user->id, 'accountId' => '0x0', 'contactId' => '0x0'),
+						$current_user
+					));
+				}
 				$ret = $this->getSearchResultMsg($rdo);
 				break;
 			case self::STATUS_FIELDNOTFOUND:
@@ -213,6 +228,24 @@ class cbmmActionfind extends chatactionclass {
 			'response_type' => 'in_channel',
 			'attachments' => array($ret),
 		);
+	}
+
+	private function getZendeskResults() {
+		$zd = new corebos_zendesk();
+		if ($zd->isActive()) {
+			$ret = $zd->searchTickets($this->condition['term']['field'].$this->condition['term']['comp'].$this->condition['term']['term']);
+			$ret = array_map(
+				function ($row) {
+					$row['search_module_name'] = 'Zendesk';
+					$row['id'] = '0x'.$row['id'];
+					return $row;
+				},
+				$ret
+			);
+		} else {
+			$ret = array();
+		}
+		return $ret;
 	}
 
 	private function getSearchResultMsg($result) {
