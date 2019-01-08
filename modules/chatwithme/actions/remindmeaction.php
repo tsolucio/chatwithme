@@ -13,7 +13,7 @@
  * permissions and limitations under the License. You may obtain a copy of the License
  * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
  *************************************************************************************************/
-require 'include/Webservices/Revise.php';
+require_once 'include/Webservices/Revise.php';
 
 class cbmmActionremindmeaction extends chatactionclass {
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License. You may obtain a copy of the License
  * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
  *************************************************************************************************/
-require 'include/Webservices/Create.php';
+require_once 'include/Webservices/Create.php';
 
 class cbmmActionRemindme extends chatactionclass {
 	private const ACTIVITYTYPE = 'MMRemindMe';
