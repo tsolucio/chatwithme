@@ -66,7 +66,8 @@ function sendMMPost($response) {
 }
 
 function parseMMMsg($text) {
-	return explode(' ', $text);
+	global $default_charset;
+	return explode(' ', html_entity_decode($text, ENT_QUOTES, $default_charset));
 }
 
 function getMMRequest() {
