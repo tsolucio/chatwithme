@@ -28,7 +28,7 @@ class cbmmActionshow extends chatactionclass {
 	}
 
 	public function process() {
-		global $adb;
+		global $adb, $current_user;
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		$this->questionid = 0;
@@ -43,24 +43,20 @@ class cbmmActionshow extends chatactionclass {
 					$qname .= ' '.$prm[$t];
 				}
 				$qname = trim($qname);
-				$qrs = $adb->pquery(
-					'select cbquestionid
-						from vtiger_cbquestion
-						inner join vtiger_crmentity on crmid = cbquestionid
-						where deleted=0 and qname=?',
-					array($qname)
-				);
+				$queryGenerator = new QueryGenerator('cbQuestion', $current_user);
+				$queryGenerator->setFields(array('id'));
+				$queryGenerator->addCondition('qname', $qname, 'e');
+				$query = $queryGenerator->getQuery();
+				$qrs = $adb->pquery($query, array());
 				if ($adb->num_rows($qrs)==1) {
 					$prm[1] = $adb->query_result($qrs, 0, 'cbquestionid');
 				} else {
 					if ($adb->num_rows($qrs)==0) {
-						$qrs = $adb->pquery(
-							'select cbquestionid
-								from vtiger_cbquestion
-								inner join vtiger_crmentity on crmid = cbquestionid
-								where deleted=0 and qname like ?',
-							array('%'.$qname.'%')
-						);
+						$queryGenerator = new QueryGenerator('cbQuestion', $current_user);
+						$queryGenerator->setFields(array('id'));
+						$queryGenerator->addCondition('qname', $qname, 'c');
+						$query = $queryGenerator->getQuery();
+						$qrs = $adb->pquery($query, array());
 						if ($adb->num_rows($qrs)==0) {
 							$this->status = self::STATUS_NOTFOUND;
 						} else {
