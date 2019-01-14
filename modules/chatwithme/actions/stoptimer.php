@@ -13,12 +13,13 @@
 * permissions and limitations under the License. You may obtain a copy of the License
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
-require 'include/Webservices/Revise.php';
+require_once 'include/Webservices/Revise.php';
+
 class cbmmActionstoptimer extends chatactionclass {
-	private const TITLE = 'open timer';
-	private const CALL_FROM = 'starttimer';
-	private const STATUS_FOUND_OPEN_TIMER = 1;
-	private const STATUS_NO_OPEN_TIMER = 2;
+	const TITLE = 'open timer';
+	const CALL_FROM = 'starttimer';
+	const STATUS_FOUND_OPEN_TIMER = 1;
+	const STATUS_NO_OPEN_TIMER = 2;
 	private $open_timer_status;
 	private $recid;
 	private $stoped_at;
