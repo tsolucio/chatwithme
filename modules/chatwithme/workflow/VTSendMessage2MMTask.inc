@@ -52,7 +52,9 @@ class VTSendMessage2MMTask extends VTTask {
 			if (!empty($this->messageColor)) {
 				$textdata['attachments'][0]['color'] = getMMMsgColor($this->messageColor);
 			}
-			$baseurl = $site_URL.'/chatwithme.php?token='.$configmm['token'][0].'&record='.$crmid[1].'&user_id='.$focus->column_fields['mmuserid'];
+			$mmuidrs = $adb->pquery('select mmuserid from vtiger_users where id=?', array($focus->id));
+			$mmuserid = $adb->query_result($mmuidrs, 0, 'mmuserid');
+			$baseurl = $site_URL.'/chatwithme.php?token='.$configmm['token'][0].'&record='.$crmid[1].'&user_id='.$mmuserid;
 			if (!empty($this->button_title1) && !empty($this->button_url1)) {
 				$textdata['attachments'][0]['actions'] = array(
 					array(
