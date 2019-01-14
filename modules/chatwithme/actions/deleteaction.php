@@ -27,11 +27,18 @@ class cbmmActiondeleteaction extends chatactionclass {
 		$module = getSalesEntityType($crmid);
 		$en = getEntityName($module, $crmid);
 		if ($_REQUEST['delete']==1 && isPermitted($module, 'Delete', $crmid) == 'yes') {
-			$ret = array(
-				'color' => getMMMsgColor('blue'),
-				'ephemeral_text' => getTranslatedString('record', 'chatwithme')." ($crmid) ".$en[$crmid].' **'.getTranslatedString('deleted', 'chatwithme').'!**',
-			);
-			vtws_delete(vtws_getEntityId($module).'x'.$crmid, $current_user);
+			try {
+				vtws_delete(vtws_getEntityId($module).'x'.$crmid, $current_user);
+				$ret = array(
+					'color' => getMMMsgColor('blue'),
+					'ephemeral_text' => getTranslatedString('record', 'chatwithme')." ($crmid) ".$en[$crmid].' **'.getTranslatedString('deleted', 'chatwithme').'!**',
+				);
+			} catch (Exception $e) {
+				$ret = array(
+					'color' => getMMMsgColor('blue'),
+					'ephemeral_text' => getTranslatedString('record', 'chatwithme')." ($crmid) ".$en[$crmid].' **'.getTranslatedString('notdeleted', 'chatwithme').'!**',
+				);
+			}
 		} else {
 			$ret = array(
 				'update' => array(
