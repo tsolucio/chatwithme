@@ -77,7 +77,7 @@ class chatwithme extends CRMEntity {
 			$taskManager = new VTTaskManager($adb);
 			// Send MM Reminder workflow
 			$calendarWorkflow = $workflowManager->newWorkFlow('cbCalendar');
-			$calendarWorkflow->test = '[{"fieldname":"activitytype","operation":"is","value":"MMRemindMe","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"eventstatus","operation":"is not","value":"Completed","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"dtstart","operation":"more than hours before","value":"72","valuetype":"expression","joincondition":"and","groupid":"0"}]';
+			$calendarWorkflow->test = '[{"fieldname":"activitytype","operation":"is","value":"MMRemindMe","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"eventstatus","operation":"is not","value":"Completed","valuetype":"rawtext","joincondition":"and","groupid":"0"},{"fieldname":"dtstart","operation":"less than hours before","value":"72","valuetype":"expression","joincondition":"and","groupid":"0"}]';
 			$calendarWorkflow->description = 'Send MM Reminder';
 			$calendarWorkflow->executionCondition = VTWorkflowManager::$ON_SCHEDULE;
 			$calendarWorkflow->defaultworkflow = 0;
