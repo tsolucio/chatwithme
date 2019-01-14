@@ -22,6 +22,8 @@ $cwmcommands = array(
 	'logtime' => 'logtime',
 	'remindme' => 'remindme',
 	'list' => 'list',
+	'task' => 'task',
+	'timespent' => 'timespent',
 );
 
 /*
@@ -36,6 +38,8 @@ $cwmcommands = array(
 #starttimer
 #stoptimer
 #logtime
+#task
+#timespent
 #remindme
 #list
 */

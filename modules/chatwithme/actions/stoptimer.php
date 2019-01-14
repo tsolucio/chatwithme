@@ -22,6 +22,11 @@ class cbmmActionstoptimer extends chatactionclass {
 	private $open_timer_status;
 	private $recid;
 	private $stoped_at;
+
+	public function getHelp() {
+		return ' - '.getTranslatedString('stoptimer_command', 'chatwithme');
+	}
+
 	public function process() {
 		global $current_user, $adb;
 		$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
@@ -57,6 +62,7 @@ class cbmmActionstoptimer extends chatactionclass {
 		}
 		return true;
 	}
+
 	public function getResponse() {
 		global $adb;
 		global $current_user;

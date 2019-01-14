@@ -19,9 +19,11 @@ class cbmmActionstarttimer extends chatactionclass {
 	private const STATUS_FOUND_OPEN_TIMER = 1;
 	private const STATUS_NO_OPEN_TIMER = 2;
 	private $open_timer_status;
+
 	public function getHelp() {
-		return getTranslatedString('starttimer_command', 'chatwithme');
+		return ' - '.getTranslatedString('starttimer_command', 'chatwithme');
 	}
+
 	public function process() {
 		global $current_user, $adb;
 		$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
@@ -54,6 +56,7 @@ class cbmmActionstarttimer extends chatactionclass {
 		}
 		return true;
 	}
+
 	public function getResponse() {
 		if ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
 			$ret = array(
