@@ -19,11 +19,11 @@ include_once 'include/Webservices/Delete.php';
 class cbmmActiondelete extends chatactionclass {
 	private $crmid;
 	private $status;
-	private const STATUS_DELETEITNOW = 1;
-	private const STATUS_DELETEIT = 2;
-	private const STATUS_NOTFOUND = 3;
-	private const STATUS_NOPERMISSION = 4;
-	private const STATUS_BADFORMAT = 5;
+	const STATUS_DELETEITNOW = 1;
+	const STATUS_DELETEIT = 2;
+	const STATUS_NOTFOUND = 3;
+	const STATUS_NOPERMISSION = 4;
+	const STATUS_BADFORMAT = 5;
 
 	public function getHelp() {
 		return ' - '.getTranslatedString('delete_command', 'chatwithme');

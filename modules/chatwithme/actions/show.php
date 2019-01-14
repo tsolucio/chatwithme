@@ -17,11 +17,11 @@
 class cbmmActionshow extends chatactionclass {
 	private $questionid;
 	private $status;
-	private const STATUS_RETURNRESULTS = 1;
-	private const STATUS_FOUNDSOME = 2;
-	private const STATUS_NOTFOUND = 3;
-	private const STATUS_NOPERMISSION = 4;
-	private const STATUS_BADFORMAT = 5;
+	const STATUS_RETURNRESULTS = 1;
+	const STATUS_FOUNDSOME = 2;
+	const STATUS_NOTFOUND = 3;
+	const STATUS_NOPERMISSION = 4;
+	const STATUS_BADFORMAT = 5;
 
 	public function getHelp() {
 		return ' - '.getTranslatedString('show_command', 'chatwithme');

@@ -16,11 +16,11 @@
 require_once 'include/Webservices/Create.php';
 
 class cbmmActionRemindme extends chatactionclass {
-	private const ACTIVITYTYPE = 'MMRemindMe';
+	const ACTIVITYTYPE = 'MMRemindMe';
 	private $status;
-	private const STATUS_FOUNDAT = 1;
-	private const STATUS_FOUNDIN = 2;
-	private const STATUS_BADFORMAT = 3;
+	const STATUS_FOUNDAT = 1;
+	const STATUS_FOUNDIN = 2;
+	const STATUS_BADFORMAT = 3;
 
 	public function getHelp() {
 		global $current_user;

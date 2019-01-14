@@ -20,12 +20,12 @@ class cbmmActionfind extends chatactionclass {
 	private $status;
 	private $condition;
 	private $supportedComparators = array('=','>','>=','<','<=','%');
-	private const STATUS_FINDITGLOBAL = 1;
-	private const STATUS_FINDITGLOBALMODULE = 2;
-	private const STATUS_FINDITFIELDMODULE = 6;
-	private const STATUS_MODULENOTFOUND = 3;
-	private const STATUS_FIELDNOTFOUND = 4;
-	private const STATUS_BADFORMAT = 5;
+	const STATUS_FINDITGLOBAL = 1;
+	const STATUS_FINDITGLOBALMODULE = 2;
+	const STATUS_FINDITFIELDMODULE = 6;
+	const STATUS_MODULENOTFOUND = 3;
+	const STATUS_FIELDNOTFOUND = 4;
+	const STATUS_BADFORMAT = 5;
 
 	public function getHelp() {
 		return ' - '.getTranslatedString('find_command1', 'chatwithme')."\n".' - '.getTranslatedString('find_command2', 'chatwithme');
