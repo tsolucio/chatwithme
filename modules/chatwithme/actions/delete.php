@@ -128,7 +128,9 @@ class cbmmActiondelete extends chatactionclass {
 				);
 			}
 		}
-		$baseurl = $site_URL.'/chatwithme.php?text=deleteaction&token='.$req['token'].'&record='.$this->crmid.'&user_id='.$current_user->column_fields['mmuserid'];
+		$mmuidrs = $adb->pquery('select mmuserid from vtiger_users where id=?', array($current_user->id));
+		$mmuserid = $adb->query_result($mmuidrs, 0, 'mmuserid');
+		$baseurl = $site_URL.'/chatwithme.php?text=deleteaction&token='.$req['token'].'&record='.$this->crmid.'&user_id='.$mmuserid;
 		return array(
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
