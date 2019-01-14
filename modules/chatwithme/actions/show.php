@@ -172,8 +172,8 @@ class cbmmActionshow extends chatactionclass {
 					'attachments' => array(array(
 						'color' => getMMMsgColor('blue'),
 						'title' => $q['title'],
-						'ts' => $this->getChartQuestionMD($q['answer'], $q['properties'], $q['module'], $q['type']),
 					)),
+					'props' => array('chartdata'=>$this->getChartQuestionMD($q['answer'], $q['properties'], $q['module'], $q['type'])),
 				);
 				break;
 			case 'Table':
