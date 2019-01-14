@@ -13,7 +13,8 @@
 * permissions and limitations under the License. You may obtain a copy of the License
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
-require 'include/Webservices/Revise.php';
+require_once 'include/Webservices/Revise.php';
+
 class cbmmActiontask extends chatactionclass {
 	private const TITLE = 'open timer';
 	private const STATUS_FOUND_OPEN_TIMER = 1;
@@ -22,6 +23,7 @@ class cbmmActiontask extends chatactionclass {
 	private $project;
 	private $subject;
 	private $stoped_at;
+
 	public function process() {
 		global $current_user;
 		global $adb;
@@ -46,6 +48,7 @@ class cbmmActiontask extends chatactionclass {
 		}
 		return true;
 	}
+
 	public function getResponse() {
 		$ret = array(
 			'response_type' => 'in_channel',
