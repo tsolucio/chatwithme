@@ -16,9 +16,9 @@
 require_once 'include/Webservices/Revise.php';
 
 class cbmmActiontask extends chatactionclass {
-	private const TITLE = 'open timer';
-	private const STATUS_FOUND_OPEN_TIMER = 1;
-	private const STATUS_NO_OPEN_TIMER = 2;
+	const TITLE = 'open timer';
+	const STATUS_FOUND_OPEN_TIMER = 1;
+	const STATUS_NO_OPEN_TIMER = 2;
 	private $open_timer_status;
 	private $project;
 	private $subject;
