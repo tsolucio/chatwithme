@@ -62,7 +62,7 @@ $mod_strings = array(
 	'TimerStoped1' =>'Timer stoped at ',
 	'TimerStoped2' =>', I just need a few details for this time entry, which project did you work on?',
 	'ProjectAdded1' =>'Ok, I selected ',
-	'ProjectAdded2' =>'as the project, **What did you do?** start with _**#task** {task title}_',
+	'ProjectAdded2' =>'as the project, **What did you do?** start with _**#taskfortime** {task title}_',
 	'ProjectAdded3' =>'as the project, **What did you do?** start with _**#logtask** {task title}_',
 	'UpdateFeedback1' => ':tada: I have updated that time entry here is a recap: ',
 	'For' => 'for',
@@ -71,6 +71,8 @@ $mod_strings = array(
 	'CallError' => ':x: Invalid Call',
 	'AddProject' => 'What project did you work on? I am fetching your most recent projects.' ,
 	'AddLogTime' => ', **How many hours did you spend on this task?**. format _#timespent {hours minutes}_ You can type time in form of  \'3.3\', or  \'3.3\', or \'3hrs 30 mins\' ',
+	'Pname' => 'PROJECT NAME',
+	'TypeProject' => 'Type the Project you did, syntax _```#taskforproject``` ``{ID}``_',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
@@ -84,5 +86,6 @@ $mod_strings = array(
 	'logtime_command' => 'will create a new timecontrol entry record, and ask for more details',
 	'logtask_command' => '**logtask {task title}** : Insert title of the timecontrol record',
 	'timespent_command' => '**timespent {hours minutes}** : example 3.3 or 3:3 or 3hrs 30mins',
+	'taskforproject_command' => '**taskforproject_command** {ID} insert project to the timecontrol records',
 );
 ?>
