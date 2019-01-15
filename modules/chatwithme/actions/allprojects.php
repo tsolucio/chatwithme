@@ -23,36 +23,37 @@ class cbmmActionallprojects extends chatactionclass {
 		global $current_user;
 		global $adb;
 		global $site_URL;
+		$proj_title = 'open timer';
 		$fieldsArray = array();
 		$project_status = 'completed';
 		$token = vtlib_purify($_REQUEST['token']);
 		$res = $adb->pquery('select * from vtiger_project where projectstatus!=?', array($project_status));
 		$baseurl = $site_URL.'/chatwithme.php?text=project&token='.$token.'&user_id='.$current_user->column_fields['mmuserid'];
-		$g = 0;
-		while ($data_array=$adb->fetch_array($res)) {
-			if ($g == 15) {
-				break;
-			} else {
-				$project_id =$data_array['projectid'];
-				$project_name =$data_array['projectname'];
-				$action_data = array(
-					'name' => $project_name,
-					'integration' => array(
-						'url' => $baseurl.'&proj_id='.$project_id,
-					));
-				array_push($fieldsArray, $action_data);
-				$g++;
-			}
-		}
+		$result = $adb->pquery('select * from vtiger_timecontrol where title=?', array($proj_title));
+		$time_array = explode(':', $result->fields['totaltime']);
+		$stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
+
 		$ret = array(
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
 				'color' => getMMMsgColor('yellow'),
-				'title' => getTranslatedString('TimerStoped1', 'chatwithme').' Time '.getTranslatedString('TimerStoped2', 'chatwithme'),
-				'actions' => $fieldsArray
+				'title' => getTranslatedString('TimerStoped1', 'chatwithme') .$stoped_at.getTranslatedString('TimerStoped2', 'chatwithme'),
+				'text' => getTranslatedString('TypeProject', 'chatwithme')."\n\n".$this->getProjects(),
 			)),
 		);
 		sendMMMsg($ret, false);
+	}
+	
+	private function getProjects() {
+		global $adb;
+		$project_status = 'completed';
+		$res = $adb->pquery('select * from vtiger_project where projectstatus!=? ORDER BY projectid DESC LIMIT 1346444575705551615 OFFSET 20', array($project_status));
+		$proj = '| ID | '.getTranslatedString('Pname', 'chatwithme').' |'."\n";
+		$proj .= '|----|----|'."\n";
+		while ($q = $adb->fetch_array($res)) {
+			$proj .= '| '.$q['projectid'].' | '.$q['projectname']."\n";
+		}
+		return $proj;
 	}
 }
 ?>
