@@ -51,10 +51,11 @@ if (isMMActive() && isset($_REQUEST) && array_key_exists('text', $_REQUEST) && a
 			include 'modules/chatwithme/actions/'.$op.'.php';
 			$actionname = 'cbmmAction'.$op;
 			$action = new $actionname();
+			$echoResponse = (method_exists($action, 'echoResponse') ? $action->echoResponse() : $slashcommand);
 			if ($action->process()) {
-				sendMMMsg($action->getResponse(), $slashcommand, $action->addDefault());
+				sendMMMsg($action->getResponse(), $echoResponse, $action->addDefault());
 			} else {
-				sendMMMsg(array('text'=>getTranslatedString('ErrProcessingAction', 'chatwithme')), $slashcommand);
+				sendMMMsg(array('text'=>getTranslatedString('ErrProcessingAction', 'chatwithme')), $echoResponse);
 			}
 		} else {
 			logMMCommand(vtlib_purify($_REQUEST['user_id']), $op, vtlib_purify($_REQUEST['text']), 0);
