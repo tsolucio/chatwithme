@@ -22,7 +22,7 @@ $cwmcommands = array(
 	'registratiempo' => 'logtime',
 	'avisame' => 'remindme',
 	'lista' => 'list',
-	'tarea' => 'task',
+	'tareadeltiempo' => 'task',
 	'tiempo' => 'timespent',
 );
 
@@ -38,7 +38,7 @@ $cwmcommands = array(
 #iniciacontador
 #paracontador
 #registratiempo
-#tarea
+#tareadeltiempo
 #tiempo
 #avisame
 #lista

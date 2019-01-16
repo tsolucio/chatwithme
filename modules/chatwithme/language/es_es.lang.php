@@ -62,7 +62,7 @@ $mod_strings = array(
 	'TimerStoped1' =>'Contador para a las ',
 	'TimerStoped2' =>', solo necesito algunos detalles para esta entrada de tiempo, ¿en qué proyecto trabajaste?',
 	'ProjectAdded1' =>'Vale, he seleccionado ',
-	'ProjectAdded2' =>'como proyecto, **¿Qué has hecho?** escribe _**#tarea** {título}_',
+	'ProjectAdded2' =>'como proyecto, **¿Qué has hecho?** escribe _**#tareadeltiempo** {título}_',
 	'ProjectAdded3' =>'como proyecto, **¿Qué has hecho?** escribe _**#registratiempo** {título}_',
 	'UpdateFeedback1' => ':tada: He actualizado esa entrada de tiempo, aquí hay un resumen: ',
 	'For' => 'para',
@@ -71,6 +71,8 @@ $mod_strings = array(
 	'CallError' => ':x: Llamada inválida',
 	'AddProject' => '¿En qué proyecto has trabajado? Te muestro los últimos proyectos en los que has trabajado.' ,
 	'AddLogTime' => ', **¿Cuánto tiempo has estado en esta tarea?**. formato _#tiempo {horas minutos}_ Puedes introducir el tiempo como \'3.3\', o \'3.3\', o \'3hrs 30 mins\' ',
+	'Pname' => 'NOMBRE TAREA',
+	'TypeProject' => 'Indica la tarea en la que has trabajado, sintaxis _```#tareadeltiempo``` ``{ID}``_',
 	// commands
 	'delete_command' => '**borra {registro} [si]**: Borra un registro',
 	'show_command' => '**muestra {pregunta}**: Ejecuta una pregunta y ver los resultados',
@@ -84,5 +86,6 @@ $mod_strings = array(
 	'logtime_command' => 'creará un nuevo registro de entrada de control de tiempo y solicitará más detalles',
 	'logtask_command' => '**logtask {título}** : Insertar el título del registro de control de tiempo.',
 	'timespent_command' => '**tiempo {horas minutos}** : ejemplo 3.3 o 3:3 o 3hrs 30mins',
+	'taskforproject_command' => '**tareadeltiempo** {ID} asocia la tarea con el registro de tiempo',
 );
 ?>
