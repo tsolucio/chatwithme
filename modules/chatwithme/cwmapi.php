@@ -77,7 +77,7 @@ if (isMMActive() && isset($_REQUEST) && array_key_exists('text', $_REQUEST) && a
 			'response_type' => 'in_channel',
 			'text' => getTranslatedString('MMInvalidUser', 'chatwithme'),
 		);
-		sendMMMsg($response, $slashcommand);
+		sendMMMsg($response, true);
 	}
 }
 ?>
