@@ -20,7 +20,7 @@ class VTSendMessage2MMTask extends VTTask {
 	}
 
 	public function doTask(&$entity) {
-		global $current_user, $log, $configmm, $site_URL;
+		global $current_user, $logbg, $adb, $configmm, $site_URL;
 		$data = $entity->getData();
 		$usrid = explode('x', $data['assigned_user_id']);
 		$focus = new Users();
@@ -88,6 +88,8 @@ class VTSendMessage2MMTask extends VTTask {
 				$textdata['attachments'][0]['actions'] = array_merge($textdata['attachments'][0]['actions'], $button3);
 			}
 		}
+		$logbg->debug('Mattermost msg sent:');
+		$logbg->debug($textdata);
 		sendMMMsg($textdata, false);
 	}
 }
