@@ -22,7 +22,7 @@ include 'vtlib/Vtiger/Net/Client.php';
  * Send message to mattermost
  * @param $text
  */
-function sendMMMsg($response, $slashcommand, $addDefault = true) {
+function sendMMMsg($response, $echoResponse, $addDefault = true) {
 	global $configmm;
 	if (empty($configmm)) {
 		$configmm = getMMSettings();
@@ -33,12 +33,11 @@ function sendMMMsg($response, $slashcommand, $addDefault = true) {
 		$default['icon_url'] = $configmm['icon_url'];
 	}
 	$response = array_merge($default, $response);
-	if ($slashcommand) {
+	if ($echoResponse) {
 		sendMMResponse($response);
 	} else {
 		sendMMPost($response);
 	}
-	die;
 }
 
 /**
