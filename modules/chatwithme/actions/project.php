@@ -17,6 +17,10 @@ require_once 'include/Webservices/Revise.php';
 
 class cbmmActionproject extends chatactionclass {
 
+	public function echoResponse() {
+		return false;
+	}
+
 	public function getResponse() {
 		global $current_user, $adb;
 		$ret = array(
@@ -46,7 +50,7 @@ class cbmmActionproject extends chatactionclass {
 				);
 			}
 		}
-		sendMMMsg($ret, false);
+		return $ret;
 	}
 }
 ?>

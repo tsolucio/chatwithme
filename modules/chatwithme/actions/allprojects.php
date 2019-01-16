@@ -19,6 +19,10 @@ class cbmmActionallprojects extends chatactionclass {
 		return false;
 	}
 
+	public function echoResponse() {
+		return false;
+	}
+
 	public function getResponse() {
 		global $current_user;
 		global $adb;
@@ -41,9 +45,9 @@ class cbmmActionallprojects extends chatactionclass {
 				'text' => getTranslatedString('TypeProject', 'chatwithme')."\n\n".$this->getProjects(),
 			)),
 		);
-		sendMMMsg($ret, false);
+		return $ret;
 	}
-	
+
 	private function getProjects() {
 		global $adb;
 		$project_status = 'completed';
