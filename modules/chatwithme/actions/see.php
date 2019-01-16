@@ -47,6 +47,11 @@ class cbmmActionsee extends chatactionclass {
 				'title' => getTranslatedString('SINGLE_'.$module, $module),
 				'fields'=> $fieldsArray,
 			)),
+			'props' => array('chatwithme'=>array(
+				'action' => 'see',
+				'module' => $module,
+				'id' => $this->crmid,
+			)),
 		);
 	}
 }
