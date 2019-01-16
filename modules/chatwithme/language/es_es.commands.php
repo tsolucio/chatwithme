@@ -15,6 +15,7 @@ $cwmcommands = array(
 	'actualiza' => 'update',
 	'edita' => 'edit',
 	'crea' => 'create',
+	'abre' => 'open',
 	'borra' => 'delete',
 	'ver' => 'see',
 	'iniciacontador' => 'starttimer',
@@ -33,6 +34,7 @@ $cwmcommands = array(
 #actualiza
 #edita
 #crea
+#abre
 #borra
 #ver
 #iniciacontador

@@ -15,6 +15,7 @@ $cwmcommands = array(
 	'update' => 'update',
 	'edit' => 'edit',
 	'create' => 'create',
+	'open' => 'open',
 	'delete' => 'delete',
 	'see' => 'see',
 	'starttimer' => 'starttimer',
@@ -33,6 +34,7 @@ $cwmcommands = array(
 #update
 #edit
 #create
+#open
 #delete
 #see
 #starttimer
