@@ -73,6 +73,9 @@ $mod_strings = array(
 	'AddLogTime' => ', **How many hours did you spend on this task?**. format _#timespent {hours minutes}_ You can type time in form of  \'3.3\', or  \'3.3\', or \'3hrs 30 mins\' ',
 	'Pname' => 'PROJECT NAME',
 	'TypeProject' => 'Type the Project you worked on, syntax _```#taskforproject``` ``{ID}``_',
+	'RecordUpdated' => ':tada: Record updated successfully!',
+	'RecordNotUpdated' => 'Record update failed!',
+	'InvalidField' => ':x: Invalid field name',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
@@ -87,5 +90,6 @@ $mod_strings = array(
 	'logtask_command' => '**logtask {task title}** : Insert title of the timecontrol record',
 	'timespent_command' => '**timespent {hours minutes}** : example 3.3 or 3:3 or 3hrs 30mins',
 	'taskforproject_command' => '**taskforproject** {ID} insert project to the timecontrol records',
+	'update_command' => '**update {crmid} {fieldname}={value}**: Update field value of a certain record',
 );
 ?>
