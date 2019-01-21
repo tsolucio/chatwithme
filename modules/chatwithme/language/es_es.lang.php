@@ -87,5 +87,6 @@ $mod_strings = array(
 	'logtask_command' => '**logtask {título}** : Insertar el título del registro de control de tiempo.',
 	'timespent_command' => '**tiempo {horas minutos}** : ejemplo 3.3 o 3:3 o 3hrs 30mins',
 	'taskforproject_command' => '**tareadeltiempo** {ID} asocia la tarea con el registro de tiempo',
+	'update_command' => '**actualiza {crmid} {campo}={valor}**: Actualiza un campo de un registro',
 );
 ?>
