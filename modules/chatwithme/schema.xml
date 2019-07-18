@@ -4,8 +4,8 @@
 		<table>
 			<name>chatwithme_log</name>
 			<sql><![CDATA[CREATE TABLE `chatwithme_log` (
-	`cbuser` int(11) NOT NULL DEFAULT '0',
-	`mmuser` int(11) NOT NULL DEFAULT '0',
+	`cbuser` varchar(250) NOT NULL DEFAULT '',
+	`mmuser` varchar(250) NOT NULL DEFAULT '',
 	`dt` datetime DEFAULT NULL,
 	`command` varchar(250) NOT NULL DEFAULT '',
 	`mmtext` varchar(250) NOT NULL DEFAULT '',
