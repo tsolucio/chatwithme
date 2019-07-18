@@ -30,7 +30,13 @@ class cbmmActionstoptimer extends chatactionclass {
 
 	public function process() {
 		global $current_user, $adb;
-		$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
+		$res = $adb->pquery(
+			'select timecontrolid
+				from vtiger_timecontrol
+				inner join vtiger_crmentity on crmid=timecontrolid
+				where deleted=0 and title=? and smownerid=? limit 1',
+			array(self::TITLE, $current_user->id)
+		);
 		if ($adb->num_rows($res) > 0) {
 			switch ($current_user->date_format) {
 				case 'dd-mm-yyyy':

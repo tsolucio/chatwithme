@@ -26,13 +26,18 @@ class cbmmActiontaskfortime extends chatactionclass {
 	private $stoped_at;
 
 	public function process() {
-		global $current_user;
-		global $adb;
+		global $current_user, $adb;
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		$this->subject = implode(' ', array_slice($prm, 1, count($prm)));
 		if ($this->subject != '') {
-			$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
+			$res = $adb->pquery(
+				'select timecontrolid
+					from vtiger_timecontrol
+					inner join vtiger_crmentity on crmid=timecontrolid
+					where deleted=0 and title=? and smownerid=? limit 1',
+				array(self::TITLE, $current_user->id)
+			);
 			if ($adb->num_rows($res) > 0) {
 				$record_id = vtlib_purify($res->fields['timecontrolid']);
 				$data = array(

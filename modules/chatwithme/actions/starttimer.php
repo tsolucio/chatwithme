@@ -27,7 +27,13 @@ class cbmmActionstarttimer extends chatactionclass {
 
 	public function process() {
 		global $current_user, $adb;
-		$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
+		$res = $adb->pquery(
+			'select 1
+				from vtiger_timecontrol
+				inner join vtiger_crmentity on crmid=timecontrolid
+				where deleted=0 and title=? and smownerid=? limit 1',
+			array(self::TITLE, $current_user->id)
+		);
 		if ($adb->num_rows($res) > 0) {
 			$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
 		} else {
