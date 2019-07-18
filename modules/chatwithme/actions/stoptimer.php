@@ -65,15 +65,15 @@ class cbmmActionstoptimer extends chatactionclass {
 	}
 
 	public function getResponse() {
-		global $adb;
-		global $current_user;
-		global $site_URL;
+		global $adb, $current_user, $site_URL;
 		$req = getMMRequest();
 		$project_status = 'completed';
 		$fieldsArray = array();
-		$baseurl = $site_URL.'/chatwithme.php?text=project&token='.$req['token'].'&user_id='.$current_user->column_fields['mmuserid'].'&recid='.$this->recid.
-		'&call='.self::CALL_FROM;
-		$baseurl1 = $site_URL.'/chatwithme.php?text=allprojects&token='.$req['token'].'&user_id='.$current_user->column_fields['mmuserid'];
+		$baseurl = $site_URL.'/notifications.php?type=CWM&text=project&token='.$req['token']
+			.'&user_id='.$current_user->column_fields['mmuserid'].'&recid='.$this->recid.'&call='.self::CALL_FROM
+			.(isset($_REQUEST['chnl_name']) ? '&chnl_name='.$_REQUEST['chnl_name'] : '');
+		$baseurl1 = $site_URL.'/notifications.php?type=CWM&text=allprojects&token='.$req['token'].'&user_id='.$current_user->column_fields['mmuserid']
+			.(isset($_REQUEST['chnl_name']) ? '&chnl_name='.$_REQUEST['chnl_name'] : '');
 		if ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',

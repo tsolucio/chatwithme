@@ -203,4 +203,8 @@ function convertFieldValue2Markdown($value) {
 	}
 	return $value;
 }
+
+function __cwmDoNothing() {
+	// nothing
+}
 ?>

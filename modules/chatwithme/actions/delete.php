@@ -130,7 +130,7 @@ class cbmmActiondelete extends chatactionclass {
 		}
 		$mmuidrs = $adb->pquery('select mmuserid from vtiger_users where id=?', array($current_user->id));
 		$mmuserid = $adb->query_result($mmuidrs, 0, 'mmuserid');
-		$baseurl = $site_URL.'/chatwithme.php?text=deleteaction&token='.$req['token'].'&record='.$this->crmid.'&user_id='.$mmuserid;
+		$baseurl = $site_URL.'/notifications.php?type=CWM&text=deleteaction&token='.$req['token'].'&record='.$this->crmid.'&user_id='.$mmuserid;
 		return array(
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
