@@ -32,6 +32,9 @@ function sendMMMsg($response, $echoResponse, $addDefault = true) {
 		$default['username'] = $configmm['username'];
 		$default['icon_url'] = $configmm['icon_url'];
 	}
+	if (isset($_REQUEST['chnl_name']) && !isset($response['channel'])) {
+		$response['channel'] = $_REQUEST['chnl_name'];
+	}
 	$response = array_merge($default, $response);
 	if ($echoResponse) {
 		sendMMResponse($response);
