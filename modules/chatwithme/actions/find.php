@@ -175,6 +175,12 @@ class cbmmActionfind extends chatactionclass {
 			'<' => 'l',
 		);
 		$module = $this->condition['module'];
+		if (!vtlib_isModuleActive($module) || !vtlib_isEntityModule($module)) {
+			return array(
+				'color' => getMMMsgColor('yellow'),
+				'title' => getTranslatedString('LBL_NOSEARCHRESULTS', 'chatwithme'),
+			);
+		}
 		$focus = CRMEntity::getInstance($module);
 		$bmapname = $module.'_ListColumns';
 		$cbMapid = GlobalVariable::getVariable('BusinessMapping_'.$bmapname, cbMap::getMapIdByName($bmapname));
