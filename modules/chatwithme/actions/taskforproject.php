@@ -51,7 +51,7 @@ class cbmmActiontaskforproject extends chatactionclass {
 		}
 		return true;
 	}
-	
+
 	public function getResponse() {
 		$ret = array(
 			'response_type' => 'in_channel',

@@ -58,7 +58,7 @@ class cbmmActiontaskfortime extends chatactionclass {
 		}
 		return true;
 	}
-	
+
 	public function getResponse() {
 		$ret = array(
 			'response_type' => 'in_channel',
