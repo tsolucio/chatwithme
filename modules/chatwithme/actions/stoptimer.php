@@ -96,8 +96,8 @@ class cbmmActionstoptimer extends chatactionclass {
 				if ($g == 12) {
 					break;
 				} else {
-					$project_id =$data_array['projectid'];
-					$project_name =$data_array['projectname'];
+					$project_id = $data_array['projectid'];
+					$project_name = decode_html($data_array['projectname']);
 					$action_data = array(
 						'name' => $project_name,
 						'integration' => array(
