@@ -89,7 +89,7 @@ class cbmmActionstoptimer extends chatactionclass {
 				)),
 			);
 			return $ret;
-		} if ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
+		} elseif ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
 			$res = $adb->pquery('select * from vtiger_project where projectstatus!=? ORDER BY projectid DESC', array($project_status));
 			$g = 0;
 			while ($data_array=$adb->fetch_array($res)) {

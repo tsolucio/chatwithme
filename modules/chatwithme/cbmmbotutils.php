@@ -94,22 +94,22 @@ function getMMRequest() {
 		[timestamp] => 1544209327
 	*/
 	$ret = array(
-		'channel_id' => vtlib_purify($_REQUEST['channel_id']),
-		'channel_name' => vtlib_purify($_REQUEST['channel_name']),
-		'team_domain' => vtlib_purify($_REQUEST['team_domain']),
-		'team_id' => vtlib_purify($_REQUEST['team_id']),
-		'token' => vtlib_purify($_REQUEST['token']),
-		'user_id' => vtlib_purify($_REQUEST['user_id']),
-		'user_name' => vtlib_purify($_REQUEST['user_name']),
-		'text' => vtlib_purify($_REQUEST['text']),
+		'channel_id' => isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : '',
+		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : '',
+		'team_domain' => isset($_REQUEST['team_domain']) ? vtlib_purify($_REQUEST['team_domain']) : '',
+		'team_id' => isset($_REQUEST['team_id']) ? vtlib_purify($_REQUEST['team_id']) : '',
+		'token' => isset($_REQUEST['token']) ? vtlib_purify($_REQUEST['token']) : '',
+		'user_id' => isset($_REQUEST['user_id']) ? vtlib_purify($_REQUEST['user_id']) : '',
+		'user_name' => isset($_REQUEST['user_name']) ? vtlib_purify($_REQUEST['user_name']) : '',
+		'text' => isset($_REQUEST['text']) ? vtlib_purify($_REQUEST['text']) : '',
 	);
 	if (isset($_REQUEST['command'])) {
 		$ret['command'] = vtlib_purify($_REQUEST['command']);
 		$ret['trigger_word'] = '';
 	} else {
 		$ret['command'] = '';
-		$ret['trigger_word'] = vtlib_purify($_REQUEST['trigger_word']);
-		$ret['file_ids'] = vtlib_purify($_REQUEST['file_ids']);
+		$ret['trigger_word'] = isset($_REQUEST['trigger_word']) ? vtlib_purify($_REQUEST['trigger_word']) : '';
+		$ret['file_ids'] = isset($_REQUEST['file_ids']) ? vtlib_purify($_REQUEST['file_ids']) : '';
 	}
 	return $ret;
 }
