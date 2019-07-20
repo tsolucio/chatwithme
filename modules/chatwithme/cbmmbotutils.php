@@ -119,7 +119,8 @@ function getMMRequest() {
 	*/
 	$ret = array(
 		'channel_id' => isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : '',
-		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : '',
+		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : ''),
+		'channel_dname' => isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '',
 		'team_domain' => isset($_REQUEST['team_domain']) ? vtlib_purify($_REQUEST['team_domain']) : '',
 		'team_id' => isset($_REQUEST['team_id']) ? vtlib_purify($_REQUEST['team_id']) : '',
 		'token' => isset($_REQUEST['token']) ? vtlib_purify($_REQUEST['token']) : '',
