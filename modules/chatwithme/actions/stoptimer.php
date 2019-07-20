@@ -40,14 +40,12 @@ class cbmmActionstoptimer extends chatactionclass {
 		if ($adb->num_rows($res) > 0) {
 			switch ($current_user->date_format) {
 				case 'dd-mm-yyyy':
-					$current_date = date('Y-m-d H:i:s');
+					$current_date = date('d-m-Y');
 					break;
 				case 'mm-dd-yyyy':
+					$current_date = date('m-d-Y');
 					break;
 				case 'yyyy-mm-dd':
-					$current_date = date('Y-m-d');
-					$current_date = date('Y-m-d');
-					break;
 				default:
 					$current_date = date('Y-m-d');
 					break;
