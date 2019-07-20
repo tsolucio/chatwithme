@@ -59,6 +59,7 @@ $mod_strings = array(
 	'StartedNewTimer' => 'Okay, I started New Timer :stopwatch:',
 	'ThereIsOpenTimer' => ':warning: There is another open timer, stop it first',
 	'NoOpenTimer' => ':warning: Sorry, There is no started timer',
+	'ProjectNotFound' => ':warning: Sorry, could not find that project',
 	'TimerStoped1' =>'Timer stoped at ',
 	'TimerStoped2' =>', I just need a few details for this time entry, which project did you work on?',
 	'ProjectAdded1' =>'Ok, I selected ',

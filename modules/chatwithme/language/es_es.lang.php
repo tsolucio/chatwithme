@@ -59,6 +59,7 @@ $mod_strings = array(
 	'StartedNewTimer' => 'Vale, he iniciado un nuevo contador :stopwatch:',
 	'ThereIsOpenTimer' => ':warning: Hay otro contador en marcha, paralo primero',
 	'NoOpenTimer' => ':warning: no he encontrado ningún contador en marcha',
+	'ProjectNotFound' => ':warning: no he podido encontrar ese proyecto',
 	'TimerStoped1' =>'Contador para a las ',
 	'TimerStoped2' =>', solo necesito algunos detalles para esta entrada de tiempo, ¿en qué proyecto trabajaste?',
 	'ProjectAdded1' =>'Vale, he seleccionado ',

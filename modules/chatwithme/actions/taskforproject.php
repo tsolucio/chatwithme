@@ -20,6 +20,7 @@ class cbmmActiontaskforproject extends chatactionclass {
 	const STATUS_FOUND_OPEN_TIMER = 1;
 	const STATUS_NO_OPEN_TIMER = 2;
 	const BAD_CALL = 3;
+	const STATUS_PROJECT_NOT_FOUND = 4;
 	private $open_timer_status;
 	private $project;
 	public function getHelp() {
@@ -27,24 +28,34 @@ class cbmmActiontaskforproject extends chatactionclass {
 	}
 
 	public function process() {
-		global $current_user;
-		global $adb;
+		global $current_user, $adb;
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		$pid = vtlib_purify($prm[1]);
 		if ($pid != '') {
-			$res = $adb->pquery('select * from vtiger_timecontrol where title=?', array(self::TITLE));
-			$record_id = vtlib_purify($res->fields['timecontrolid']);
+			$res = $adb->pquery('select 1 from vtiger_project where projectid=?', array($pid));
 			if ($adb->num_rows($res) > 0) {
-				$data = array(
-					'id' =>vtws_getEntityId('Timecontrol').'x'.$record_id,
-					'relatedto' => vtws_getEntityId('Project').'x'.$pid
-				 );
-				$result = vtws_revise($data, $current_user);
-				$this->project = $result['relatedname'];
-				$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
+				$res = $adb->pquery(
+					'select timecontrolid
+						from vtiger_timecontrol
+						inner join vtiger_crmentity on crmid=timecontrolid
+						where deleted=0 and title=? and smownerid=? limit 1',
+					array(self::TITLE, $current_user->id)
+				);
+				if ($adb->num_rows($res) > 0) {
+					$record_id = vtlib_purify($res->fields['timecontrolid']);
+					$data = array(
+						'id' =>vtws_getEntityId('Timecontrol').'x'.$record_id,
+						'relatedto' => vtws_getEntityId('Project').'x'.$pid
+					);
+					$result = vtws_revise($data, $current_user);
+					$this->project = $result['relatedname'];
+					$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
+				} else {
+					$this->open_timer_status = self::STATUS_NO_OPEN_TIMER;
+				}
 			} else {
-				$this->open_timer_status = self::STATUS_NO_OPEN_TIMER;
+				$this->open_timer_status = self::STATUS_PROJECT_NOT_FOUND;
 			}
 		} else {
 			$this->open_timer_status = self::BAD_CALL;
@@ -65,7 +76,15 @@ class cbmmActiontaskforproject extends chatactionclass {
 					'text' => getTranslatedString('NoOpenTimer', 'chatwithme'),
 				)),
 			);
-		} if ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
+		} elseif ($this->open_timer_status == self::STATUS_PROJECT_NOT_FOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('ProjectNotFound', 'chatwithme'),
+				)),
+			);
+		} elseif ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'text' => getTranslatedString('ProjectAdded1', 'chatwithme').$this->project .' '.getTranslatedString('ProjectAdded2', 'chatwithme'),
