@@ -72,6 +72,30 @@ function parseMMMsg($text) {
 	return explode(' ', html_entity_decode($text, ENT_QUOTES, $default_charset));
 }
 
+function parseMMMsgWithQuotes($text) {
+	global $default_charset;
+	$input = explode(' ', html_entity_decode($text, ENT_QUOTES, $default_charset));
+	$ret = array();
+	$inquotes = false;
+	foreach ($input as $value) {
+		if (substr($value, 0, 1)=='"') {
+			$inquotes = true;
+			$value = substr($value, 1);
+			$accum = '';
+		}
+		if (substr($value, -1, 1)=='"') {
+			$inquotes = false;
+			$value = $accum.trim($value, '"');
+		}
+		if ($inquotes) {
+			$accum .= $value.' ';
+		} else {
+			$ret[] = $value;
+		}
+	}
+	return $ret;
+}
+
 function getMMRequest() {
 	/* POST PARAMS
 		[channel_id] => yxqdo1yfg7bqmbxmur3nrd5jpc
