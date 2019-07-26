@@ -20,7 +20,8 @@ if ($isadmin && isset($_REQUEST['_op']) && $_REQUEST['_op']=='setmmconfig') {
 	$iconurl = (empty($_REQUEST['mm_icon_url']) ? '' : vtlib_purify($_REQUEST['mm_icon_url']));
 	$posturl = (empty($_REQUEST['mm_posturl']) ? '' : vtlib_purify($_REQUEST['mm_posturl']));
 	$tokens = (empty($_REQUEST['mm_tokens']) ? '' : vtlib_purify($_REQUEST['mm_tokens']));
-	saveMMSettings($isActive, $cmdlang, $username, $iconurl, $posturl, $tokens);
+	$mmuserpasswd = (empty($_REQUEST['mm_userpasswd']) ? '' : vtlib_purify($_REQUEST['mm_userpasswd']));
+	saveMMSettings($isActive, $cmdlang, $username, $iconurl, $posturl, $tokens, $mmuserpasswd);
 }
 $cmdlangs = array();
 foreach (glob('modules/chatwithme/language/*.commands.php') as $cmdfilename) {
@@ -35,6 +36,7 @@ $smarty->assign('username', $mmsettings['username']);
 $smarty->assign('icon_url', $mmsettings['icon_url']);
 $smarty->assign('posturl', $mmsettings['posturl']);
 $smarty->assign('tokens', implode(',', $mmsettings['token']));
+$smarty->assign('mmuserpasswd', $mmsettings['mmuserpasswd']);
 $smarty->assign('APP', $app_strings);
 $smarty->assign('MOD', $mod_strings);
 $smarty->assign('MODULE', $currentModule);

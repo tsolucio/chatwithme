@@ -32,6 +32,7 @@ $mod_strings = array(
 	'_icon_url' => 'Icon URL to show on post',
 	'_posturl' => 'URL to post messages to',
 	'_tokens' => 'Comma separated list of valid tokens',
+	'_mmuserpasswd' => 'Default mattermost user password (used when syncing users)',
 	'LBL_MODULE_NOT_FOUND' => 'I could not find the indicated module',
 	'LBL_FIELD_NOT_FOUND' => 'I could not find the indicated field',
 	'LBL_NOSEARCHRESULTS' => 'I could not find any information with that search term',

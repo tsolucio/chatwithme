@@ -175,13 +175,14 @@ function logMMCommand($mmuser, $command, $text, $found) {
 	$adb->pquery('insert into chatwithme_log values (?,?,?,?,?,?)', array($usrid, $mmuser, date('Y-m-d H:i:s'), $command, $text, $found));
 }
 
-function saveMMSettings($isactive, $cmdlang, $username, $iconurl, $posturl, $tokens) {
+function saveMMSettings($isactive, $cmdlang, $username, $iconurl, $posturl, $tokens, $mmuserpasswd) {
 	coreBOS_Settings::setSetting('cbmm_isactive', $isactive);
 	coreBOS_Settings::setSetting('cbmm_command_language', $cmdlang);
 	coreBOS_Settings::setSetting('cbmm_username', $username);
 	coreBOS_Settings::setSetting('cbmm_icon_url', $iconurl);
 	coreBOS_Settings::setSetting('cbmm_posturl', $posturl);
 	coreBOS_Settings::setSetting('cbmm_tokens', $tokens);
+	coreBOS_Settings::setSetting('cbmm_userpasswd', $mmuserpasswd);
 }
 
 function getMMSettings() {
@@ -200,6 +201,7 @@ function getMMSettings() {
 		'icon_url' => coreBOS_Settings::getSetting('cbmm_icon_url', $site_URL.'/modules/chatwithme/chatwithme.png'), // icon display on chat
 		'posturl' => coreBOS_Settings::getSetting('cbmm_posturl', ''),
 		'token' => array_map('trim', explode(',', coreBOS_Settings::getSetting('cbmm_tokens', ''))),
+		'mmuserpasswd' => coreBOS_Settings::getSetting('cbmm_userpasswd', ''),
 	);
 }
 

@@ -32,6 +32,7 @@ $mod_strings = array(
 	'_icon_url' => 'URL del icono a mostrar en los mensajes',
 	'_posturl' => 'URL a la que enviar mensajes',
 	'_tokens' => 'Lista separada por comas de tokens válidos',
+	'_mmuserpasswd' => 'Contraseña de usuario mattermost predeterminada (utilizada al sincronizar usuarios)',
 	'LBL_MODULE_NOT_FOUND' => 'No he podido encontrar el módulo indicado',
 	'LBL_FIELD_NOT_FOUND' => 'No he podido encontrar el campo indicado',
 	'LBL_NOSEARCHRESULTS' => 'No he podido encontrar ninguna información con esa condición',

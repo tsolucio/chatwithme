@@ -54,6 +54,12 @@
 		<input type="text" id="mm_tokens" name="mm_tokens" class="slds-input" value="{$tokens}" />
 	</div>
 </div>
+<div class="slds-form-element slds-m-top_small">
+	<label class="slds-form-element__label" for="mm_userpasswd">{'_mmuserpasswd'|@getTranslatedString:$MODULE}</label>
+	<div class="slds-form-element__control">
+		<input type="text" id="mm_userpasswd" name="mm_userpasswd" class="slds-input" value="{$mmuserpasswd}" />
+	</div>
+</div>
 <div class="slds-m-top_large">
 	<button type="submit" class="slds-button slds-button_brand">{'LBL_SAVE_BUTTON_LABEL'|@getTranslatedString:$MODULE}</button>
 </div>

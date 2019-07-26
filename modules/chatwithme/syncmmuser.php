@@ -51,7 +51,7 @@ function cbmmSendUserData($usrid) {
 	$rs = $adb->pquery('SELECT user_name,first_name,last_name,email1 FROM vtiger_users where id=? AND deleted=0', array($usrid));
 	$response = array(
 		'Username'  => $rs->fields['user_name'],
-		'Password'  => '',
+		'Password'  => coreBOS_Settings::getSetting('cbmm_userpasswd', 'myPASS22'),
 		'Email'     => $rs->fields['email1'],
 		'FirstName' => $rs->fields['first_name'],
 		'LastName'  => $rs->fields['last_name'],
