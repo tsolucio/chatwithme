@@ -53,20 +53,6 @@ class chatwithme extends CRMEntity {
 				$fieldInstance->typeofdata = 'V~O';
 				$block->addField($fieldInstance);
 			}
-			$field = Vtiger_Field::getInstance('mmpkey', $module);
-			if ($field) {
-				$this->ExecuteQuery('update vtiger_field set presence=2 where fieldid=?', array($field->id));
-			} else {
-				$block = Vtiger_Block::getInstance('LBL_USER_ADV_OPTIONS', $module);
-				$fieldInstance = new Vtiger_Field();
-				$fieldInstance->name = 'mmpkey';
-				$fieldInstance->label = 'mmpkey';
-				$fieldInstance->columntype = 'varchar(150)';
-				$fieldInstance->uitype = 1;
-				$fieldInstance->displaytype = 1;
-				$fieldInstance->typeofdata = 'V~O';
-				$block->addField($fieldInstance);
-			}
 			$modname = 'cbCalendar';
 			$module = Vtiger_Module::getInstance($modname);
 			$field = Vtiger_Field::getInstance('activitytype', $module);
