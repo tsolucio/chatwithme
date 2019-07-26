@@ -20,6 +20,7 @@ include 'modules/chatwithme/cbmmbotutils.php';
 include 'modules/chatwithme/chatactionclass.php';
 
 $configmm = getMMSettings();
+cbwProcessPHPRawInput($input);
 
 if (isMMActive() && isset($_REQUEST) && array_key_exists('text', $_REQUEST) && array_key_exists('token', $_REQUEST) && in_array($_REQUEST['token'], $configmm['token'])) {
 	$usr = new Users();

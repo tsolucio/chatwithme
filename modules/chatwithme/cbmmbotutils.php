@@ -69,7 +69,8 @@ function sendMMPost($response) {
 
 function parseMMMsg($text) {
 	global $default_charset;
-	return explode(' ', html_entity_decode($text, ENT_QUOTES, $default_charset));
+	$ret = explode(' ', html_entity_decode($text, ENT_QUOTES, $default_charset));
+	return cleanMMMsgOfEmptyStrings($ret);
 }
 
 function parseMMMsgWithQuotes($text) {
@@ -91,6 +92,16 @@ function parseMMMsgWithQuotes($text) {
 			$accum .= $value.' ';
 		} else {
 			$ret[] = $value;
+		}
+	}
+	return cleanMMMsgOfEmptyStrings($ret);
+}
+
+function cleanMMMsgOfEmptyStrings($msg) {
+	$ret = array();
+	foreach ($msg as $val) {
+		if ($val!=' ' && $val!='') {
+			$ret[] = $val;
 		}
 	}
 	return $ret;
@@ -230,6 +241,16 @@ function convertFieldValue2Markdown($value) {
 		$value = $converter->convert($value);
 	}
 	return $value;
+}
+
+function cbwProcessPHPRawInput($input) {
+	$in = json_decode($input, true);
+	foreach ($in as $key => $value) {
+		if (!isset($_REQUEST[$key])) {
+			$_REQUEST[$key] = $value;
+		}
+		$_REQUEST[$key] = vtlib_purify($_REQUEST[$key]);
+	}
 }
 
 function __cwmDoNothing() {
