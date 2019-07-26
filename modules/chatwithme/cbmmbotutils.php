@@ -245,11 +245,13 @@ function convertFieldValue2Markdown($value) {
 
 function cbwProcessPHPRawInput($input) {
 	$in = json_decode($input, true);
-	foreach ($in as $key => $value) {
-		if (!isset($_REQUEST[$key])) {
-			$_REQUEST[$key] = $value;
+	if (is_array($in)) {
+		foreach ($in as $key => $value) {
+			if (!isset($_REQUEST[$key])) {
+				$_REQUEST[$key] = $value;
+			}
+			$_REQUEST[$key] = vtlib_purify($_REQUEST[$key]);
 		}
-		$_REQUEST[$key] = vtlib_purify($_REQUEST[$key]);
 	}
 }
 
