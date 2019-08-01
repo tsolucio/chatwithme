@@ -250,6 +250,17 @@ function convertFieldValue2Markdown($value) {
 	return $value;
 }
 
+function cwm_isPicklist($field, $module) {
+	global $adb;
+	$res = $adb->pquery('SELECT * FROM vtiger_field WHERE fieldname=? AND tabid=?', array($field, getTabid($module)));
+	if ($res && $adb->num_rows($res)==1) {
+		$fld = WebserviceField::fromQueryResult($adb, $res, 0);
+		return ($fld->getFieldDataType()=='picklist');
+	} else {
+		return false;
+	}
+}
+
 function cbwProcessPHPRawInput($input) {
 	$in = json_decode($input, true);
 	if (is_array($in)) {
