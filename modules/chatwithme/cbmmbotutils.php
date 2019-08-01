@@ -35,6 +35,11 @@ function sendMMMsg($response, $echoResponse, $addDefault = true) {
 	if (isset($_REQUEST['chnl_name']) && !isset($response['channel'])) {
 		$response['channel'] = $_REQUEST['chnl_name'];
 	}
+	if (isset($_REQUEST['channel_id']) && !isset($response['channel_id'])) {
+		$response['channel_id'] = $_REQUEST['channel_id'];
+	} elseif (isset($_REQUEST['chnl_id']) && !isset($response['channel_id'])) {
+		$response['channel_id'] = $_REQUEST['chnl_id'];
+	}
 	$response = array_merge($default, $response);
 	if ($echoResponse) {
 		sendMMResponse($response);
@@ -254,6 +259,12 @@ function cbwProcessPHPRawInput($input) {
 			}
 			$_REQUEST[$key] = vtlib_purify($_REQUEST[$key]);
 		}
+	}
+	if (!empty($_REQUEST['chlinfo'])) {
+		list($cnm, $cdn, $cid) = explode('::', $_REQUEST['chlinfo']);
+		$_REQUEST['chnl_name'] = empty($_REQUEST['chnl_name']) ? vtlib_purify($cnm) : vtlib_purify($_REQUEST['chnl_name']);
+		$_REQUEST['chnl_dname'] = empty($_REQUEST['chnl_dname']) ? vtlib_purify($cdn) : vtlib_purify($_REQUEST['chnl_dname']);
+		$_REQUEST['channel_id'] = empty($_REQUEST['channel_id']) ? vtlib_purify($cid) : vtlib_purify($_REQUEST['channel_id']);
 	}
 }
 
