@@ -63,7 +63,7 @@ function cbmmSendUserData($usrid) {
 	if (empty($posturl)) {
 		return '';
 	}
-	$posturl = substr($posturl, 0, strpos($posturl, 'hooks')).'plugins/com.corebos.server';
+	$posturl .= '/plugins/com.corebos.server/syncuser';
 	$client = new Vtiger_Net_Client($posturl);
 	$client->setHeaders(array(
 		'Content-Type' => 'application/json',

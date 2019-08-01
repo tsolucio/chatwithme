@@ -24,6 +24,10 @@ class chatactionclass {
 		return '';
 	}
 
+	public function echoResponse() {
+		return false;
+	}
+
 	public function process() {
 		return true;
 	}

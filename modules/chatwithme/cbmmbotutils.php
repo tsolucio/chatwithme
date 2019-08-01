@@ -64,7 +64,7 @@ function sendMMResponse($response) {
 function sendMMPost($response) {
 	global $configmm;
 	$msg = json_encode($response);
-	$client = new Vtiger_Net_Client($configmm['posturl']);
+	$client = new Vtiger_Net_Client($configmm['posturl'].'/plugins/com.corebos.server/postmessage');
 	$client->setHeaders(array(
 		'Content-Type' => 'application/json',
 		'Content-Length' => strlen($msg),
