@@ -25,6 +25,8 @@ $cwmcommands = array(
 	'list' => 'list',
 	'task' => 'task',
 	'timespent' => 'timespent',
+	'sbsavetime' => 'sbsavetime',
+	'time' => 'sbcreatetime',
 );
 
 /*

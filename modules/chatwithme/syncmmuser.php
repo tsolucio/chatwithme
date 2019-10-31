@@ -48,7 +48,7 @@ if ($return_module!='Users' || !isRecordExists(vtws_getEntityId('Users').'x'.$us
 */
 function cbmmSendUserData($usrid) {
 	global $adb;
-	$rs = $adb->pquery('SELECT user_name,first_name,last_name,email1 FROM vtiger_users where id=? AND deleted=0', array($usrid));
+	$rs = $adb->pquery('SELECT user_name,first_name,last_name,email1,mmteam FROM vtiger_users where id=? AND deleted=0', array($usrid));
 	$response = array(
 		'Username'  => $rs->fields['user_name'],
 		'Password'  => coreBOS_Settings::getSetting('cbmm_userpasswd', 'My1stPass!'),
@@ -57,6 +57,7 @@ function cbmmSendUserData($usrid) {
 		'LastName'  => $rs->fields['last_name'],
 		'Position'  => '',
 		'Roles'     => 'system_user',
+		'TeamNames' => $rs->fields['mmteam'],
 	);
 	$msg = json_encode($response);
 	$posturl = coreBOS_Settings::getSetting('cbmm_posturl', '');

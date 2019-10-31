@@ -32,6 +32,9 @@ function sendMMMsg($response, $echoResponse, $addDefault = true) {
 		$default['username'] = $configmm['username'];
 		$default['icon_url'] = $configmm['icon_url'];
 	}
+	if (isset($_REQUEST['user_id']) && !isset($response['user_id'])) {
+		$response['user_id'] = $_REQUEST['user_id'];
+	}
 	if (isset($_REQUEST['chnl_name']) && !isset($response['channel'])) {
 		$response['channel'] = $_REQUEST['chnl_name'];
 	}
@@ -139,6 +142,8 @@ function getMMRequest() {
 		'channel_dname' => isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '',
 		'team_domain' => isset($_REQUEST['team_domain']) ? vtlib_purify($_REQUEST['team_domain']) : '',
 		'team_id' => isset($_REQUEST['team_id']) ? vtlib_purify($_REQUEST['team_id']) : '',
+		'team_name' => isset($_REQUEST['team_name']) ? vtlib_purify($_REQUEST['team_name']) : '',
+		'team_dname' => isset($_REQUEST['team_dname']) ? vtlib_purify($_REQUEST['team_dname']) : '',
 		'token' => isset($_REQUEST['token']) ? vtlib_purify($_REQUEST['token']) : '',
 		'user_id' => isset($_REQUEST['user_id']) ? vtlib_purify($_REQUEST['user_id']) : '',
 		'user_name' => isset($_REQUEST['user_name']) ? vtlib_purify($_REQUEST['user_name']) : '',
@@ -271,11 +276,14 @@ function cbwProcessPHPRawInput($input) {
 			$_REQUEST[$key] = vtlib_purify($_REQUEST[$key]);
 		}
 	}
-	if (!empty($_REQUEST['chlinfo'])) {
-		list($cnm, $cdn, $cid) = explode('::', $_REQUEST['chlinfo']);
-		$_REQUEST['chnl_name'] = empty($_REQUEST['chnl_name']) ? vtlib_purify($cnm) : vtlib_purify($_REQUEST['chnl_name']);
-		$_REQUEST['chnl_dname'] = empty($_REQUEST['chnl_dname']) ? vtlib_purify($cdn) : vtlib_purify($_REQUEST['chnl_dname']);
-		$_REQUEST['channel_id'] = empty($_REQUEST['channel_id']) ? vtlib_purify($cid) : vtlib_purify($_REQUEST['channel_id']);
+	if (!empty($_REQUEST['channel_id'])) {
+		$cinfo = coreBOS_Settings::getSetting('CWMCHINFO'.$_REQUEST['channel_id'], '');
+		if ($cinfo!='') {
+			list($cnm, $cdn, $cid) = explode('::', $cinfo);
+			$_REQUEST['chnl_name'] = empty($_REQUEST['chnl_name']) ? vtlib_purify($cnm) : vtlib_purify($_REQUEST['chnl_name']);
+			$_REQUEST['chnl_dname'] = empty($_REQUEST['chnl_dname']) ? vtlib_purify($cdn) : vtlib_purify($_REQUEST['chnl_dname']);
+			//$_REQUEST['channel_id'] = empty($_REQUEST['channel_id']) ? vtlib_purify($cid) : vtlib_purify($_REQUEST['channel_id']);
+		}
 	}
 }
 

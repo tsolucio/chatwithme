@@ -14,14 +14,21 @@
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
 require_once 'include/Webservices/Revise.php';
+require_once 'modules/chatwithme/subitoutils.php';
 
 class cbmmActionstoptimer extends chatactionclass {
 	const TITLE = 'open timer';
-	const CALL_FROM = 'starttimer';
 	const STATUS_FOUND_OPEN_TIMER = 1;
 	const STATUS_NO_OPEN_TIMER = 2;
+	const STATUS_NO_DESCRIPTION = 3;
+	const STATUS_BADFORMAT = 4;
+	const STATUS_TYPE_NOTFOUND = 5;
+	const STATUS_TIMER_CLOSED = 6;
 	private $open_timer_status;
 	private $recid;
+	private $units = 1;
+	private $title = '';
+	private $typeofwork = '';
 	private $stoped_at;
 
 	public function getHelp() {
@@ -37,47 +44,84 @@ class cbmmActionstoptimer extends chatactionclass {
 				where deleted=0 and title=? and smownerid=? limit 1',
 			array(self::TITLE, $current_user->id)
 		);
-		if ($adb->num_rows($res) > 0) {
-			switch ($current_user->date_format) {
-				case 'dd-mm-yyyy':
-					$current_date = date('d-m-Y');
-					break;
-				case 'mm-dd-yyyy':
-					$current_date = date('m-d-Y');
-					break;
-				case 'yyyy-mm-dd':
-				default:
-					$current_date = date('Y-m-d');
-					break;
-			}
-			$time_end = date('H:i:s');
-			$record_id = vtlib_purify($res->fields['timecontrolid']);
-			$this->recid  = $record_id;
-			$data = array(
-				'id' =>vtws_getEntityId('Timecontrol').'x'.$record_id,
-				'date_end' => $current_date,
-				'time_end' => $time_end
-			);
-			$result = vtws_revise($data, $current_user);
-			$time_array = explode(':', $result['totaltime']);
-			$this->stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
-			$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
-		} else {
+		if ($adb->num_rows($res) == 0) {
 			$this->open_timer_status = self::STATUS_NO_OPEN_TIMER;
+			return true;
+		}
+		$tcid = $res->fields['timecontrolid'];
+		$this->recid  = $tcid;
+		$req = getMMRequest();
+		$prm = parseMMMsgWithQuotes($req['text']);
+		if (count($prm)<2) {
+			$this->open_timer_status = self::STATUS_NO_DESCRIPTION;
+			return true;
+		}
+		$this->title = $prm[1];
+		if (count($prm)==2) {
+			// ask for type of request
+			$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
+			return true;
+		}
+		if (count($prm)==3) {
+			$param = $prm[2];
+			if (is_numeric($param)) {
+				// we have units > ask for type of request
+				$this->open_timer_status = self::STATUS_FOUND_OPEN_TIMER;
+				$this->units = $param;
+				return true;
+			} else {
+				$cn = explode('-', $req['channel_dname']);
+				$brand = $cn[0];
+				$prjtype = $cn[1];
+				$tow = sbgetTypeOfWork($req['channel_dname'], $param);
+				if ($tow) {
+					// we have all we need, units=1
+					$result = stoptimerDoUpdateTC($tcid, $brand, $prjtype, $prm[1], $param, 1, $req['team_dname']);
+					$time_array = explode(':', $result['totaltime']);
+					$this->stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
+					$this->typeofwork = $param;
+					$this->open_timer_status = self::STATUS_TIMER_CLOSED;
+					return true;
+				} else {
+					$this->open_timer_status = self::STATUS_TYPE_NOTFOUND;
+					return true;
+				}
+			}
+		}
+		if (count($prm)==4) {
+			if (is_numeric($prm[2])) {
+				$units = $prm[2];
+				$type = $prm[3];
+			} else {
+				$units = $prm[3];
+				$type = $prm[2];
+			}
+			if (!is_numeric($units)) {
+				$this->open_timer_status = self::STATUS_BADFORMAT;
+				return true;
+			}
+			$tow = sbgetTypeOfWork($req['channel_dname'], $type);
+			if ($tow) {
+				// we have all we need
+				$cn = explode('-', $req['channel_dname']);
+				$brand = $cn[0];
+				$prjtype = $cn[1];
+				$result = stoptimerDoUpdateTC($tcid, $brand, $prjtype, $prm[1], $type, $units, $req['team_dname']);
+				$time_array = explode(':', $result['totaltime']);
+				$this->stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
+				$this->typeofwork = $type;
+				$this->open_timer_status = self::STATUS_TIMER_CLOSED;
+				return true;
+			} else {
+				$this->open_timer_status = self::STATUS_TYPE_NOTFOUND;
+				return true;
+			}
 		}
 		return true;
 	}
 
 	public function getResponse() {
 		global $adb, $current_user, $site_URL;
-		$req = getMMRequest();
-		$project_status = 'completed';
-		$fieldsArray = array();
-		$baseurl = $site_URL.'/notifications.php?type=CWM&text=project&token='.$req['token']
-			.'&user_id='.$current_user->column_fields['mmuserid'].'&recid='.$this->recid.'&call='.self::CALL_FROM
-			.(isset($_REQUEST['chnl_name']) ? '&chnl_name='.$_REQUEST['chnl_name'] : '');
-		$baseurl1 = $site_URL.'/notifications.php?type=CWM&text=allprojects&token='.$req['token'].'&user_id='.$current_user->column_fields['mmuserid']
-			.(isset($_REQUEST['chnl_name']) ? '&chnl_name='.$_REQUEST['chnl_name'] : '');
 		if ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -87,39 +131,89 @@ class cbmmActionstoptimer extends chatactionclass {
 				)),
 			);
 			return $ret;
+		} elseif ($this->open_timer_status == self::STATUS_NO_DESCRIPTION) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('NoTimeDescription', 'chatwithme')."\n".getTranslatedString('stoptimer_command', 'chatwithme'),
+				)),
+			);
+			return $ret;
+		} elseif ($this->open_timer_status == self::STATUS_TYPE_NOTFOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('WorkTypeNotFound', 'chatwithme')."\n".getTranslatedString('stoptimer_command', 'chatwithme'),
+				)),
+			);
+			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_FOUND_OPEN_TIMER) {
-			$res = $adb->pquery('select * from vtiger_project where projectstatus!=? ORDER BY projectid DESC', array($project_status));
-			$g = 0;
-			while ($data_array=$adb->fetch_array($res)) {
-				if ($g == 12) {
-					break;
-				} else {
-					$project_id = $data_array['projectid'];
-					$project_name = decode_html($data_array['projectname']);
-					$action_data = array(
-						'name' => $project_name,
-						'integration' => array(
-							'url' => $baseurl.'&proj_id='.$project_id,
-						));
-					array_push($fieldsArray, $action_data);
-					$g++;
-				}
+			$fieldsArray = array();
+			$req = getMMRequest();
+			$cn = explode('-', $req['channel_dname']);
+			$brand = $cn[0];
+			$prjtype = $cn[1];
+			$tcinfoid = uniqid('CTC');
+			$tcinfo = array(
+				'team' => $req['team_dname'],
+				'units' => $this->units,
+				'title' => $this->title,
+				'recid' => $this->recid,
+			);
+			coreBOS_Settings::setSetting($tcinfoid, json_encode($tcinfo));
+			$chnlsep = '::';
+			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
+				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
+			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
+			$baseurl = $site_URL.'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
+			//$baseurl = 'http://198.199.127.108/stc/n.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
+			$plvals = sbgetAllTypeOfWork($req['channel_dname']);
+			asort($plvals);
+			foreach ($plvals as $plid => $value) {
+				$action_data = array(
+					'name' => textlength_check(decode_html($value)),
+					'integration' => array(
+						'url' => $baseurl.'&wt='.$plid,
+					));
+				array_push($fieldsArray, $action_data);
 			}
-			$action_showall = array(
-				'name' => getTranslatedString('ShowAll', 'chatwithme'),
-				'integration' => array(
-					'url'=> $baseurl1.'&event=showAll',
+			$msglen = 200+strlen(json_encode($fieldsArray));
+			if ($msglen>6500) {
+				$fieldsArray = array();
+				foreach ($plvals as $plid => $value) {
+					$opdata = array(
+						'text' => textlength_check(decode_html($value)),
+						'value' => (string)$plid,
+					);
+					$fieldsArray[] =$opdata;
+				}
+				$fieldsArray = array(array(
+					'name' => 'Select a type of work',
+					'integration' => array(
+						'url' => $baseurl,
+					),
+					'type' => 'select',
+					'options' => $fieldsArray
 				));
-			if ((count($fieldsArray) > 0) && $adb->num_rows($res)) {
-				array_push($fieldsArray, $action_showall);
 			}
 			$ret = array(
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
-					'title' => getTranslatedString('TimerStoped1', 'chatwithme').$this->stoped_at.getTranslatedString('TimerStoped2', 'chatwithme'),
+					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStoped2', 'chatwithme'),
 					'actions' => $fieldsArray
 				)),
+			);
+			return $ret;
+		} elseif ($this->open_timer_status == self::STATUS_TIMER_CLOSED) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'text' => getTranslatedString('UpdateFeedback1', 'chatwithme').$this->stoped_at.' '
+					.getTranslatedString('UpdateFeedback2', 'chatwithme').' "'.$this->title.'"'
+					.getTranslatedString('UpdateFeedback3', 'chatwithme').' "'.$this->typeofwork.'"',
 			);
 			return $ret;
 		}

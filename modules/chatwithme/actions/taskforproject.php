@@ -23,9 +23,9 @@ class cbmmActiontaskforproject extends chatactionclass {
 	const STATUS_PROJECT_NOT_FOUND = 4;
 	private $open_timer_status;
 	private $project;
-	public function getHelp() {
-		return ' - '.getTranslatedString('taskforproject_command', 'chatwithme');
-	}
+	// public function getHelp() {
+	// 	return ' - '.getTranslatedString('taskforproject_command', 'chatwithme');
+	// }
 
 	public function process() {
 		global $current_user, $adb;
