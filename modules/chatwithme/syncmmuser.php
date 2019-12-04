@@ -16,7 +16,7 @@
 require_once 'modules/chatwithme/cbmmbotutils.php';
 
 global $adb, $current_user;
-
+define("INVALIDMMTEAM", "MM_TEAM_ERROR");
 if (!is_admin($current_user)) {
 	echo '<br><br>';
 	$smarty = new vtigerCRM_Smarty();
@@ -49,6 +49,9 @@ if ($return_module!='Users' || !isRecordExists(vtws_getEntityId('Users').'x'.$us
 function cbmmSendUserData($usrid) {
 	global $adb;
 	$rs = $adb->pquery('SELECT user_name,first_name,last_name,email1,mmteam FROM vtiger_users where id=? AND deleted=0', array($usrid));
+	if (empty($rs->fields['mmteam'])) {
+		return INVALIDMMTEAM;
+	}
 	$response = array(
 		'Username'  => $rs->fields['user_name'],
 		'Password'  => coreBOS_Settings::getSetting('cbmm_userpasswd', 'My1stPass!'),
@@ -76,10 +79,13 @@ function cbmmSendUserData($usrid) {
 }
 
 $mmuserid = cbmmSendUserData($usrid);
-if (!empty($mmuserid)) {
+if (!empty($mmuserid) && $mmuserid != 'MM_TEAM_ERROR') {
 	$adb->pquery('UPDATE vtiger_users set mmuserid=? where id=?', array($mmuserid, $usrid));
 	$msg = getTranslatedString('MMUserIDUpdated', 'chatwithme');
 	$msgc = '&error_msgclass=cb-alert-success';
+} elseif ($mmuserid == "MM_TEAM_ERROR") {
+	$msg = getTranslatedString('MMUserTEAMError', 'chatwithme');
+	$msgc = '';
 } else {
 	$msg = getTranslatedString('MMUserIDError', 'chatwithme');
 	$msgc = '';
