@@ -36,18 +36,19 @@ class VTSendMessage2MMTask extends VTTask {
 		$pt1 = new VTSimpleTemplate($this->messageBody);
 		$body = $pt1->render($entityCache, $ws_id);
 		$crmid = explode('x', $ws_id);
+		$textdata = array(
+			'response_type' => 'in_channel',
+		);
+		if (isset($this->WorkflowContext['CWMWorkflowChannelName'])) {
+			$textdata['channel'] = $this->WorkflowContext['CWMWorkflowChannelName'];
+			$textdata['channel_id'] = $this->WorkflowContext['CWMWorkflowChannelID'];
+		}
 		if (empty($title)) {
-			$textdata = array(
-				'response_type' => 'in_channel',
-				'text' => strip_tags($body)
-			);
+			$textdata['text'] = strip_tags($body);
 		} else {
-			$textdata = array(
-				'response_type' => 'in_channel',
-				'attachments' => array(array(
-					'title' => $title,
-					'text' => strip_tags($body),
-				))
+			$textdata['attachments'] = array(
+				'title' => $title,
+				'text' => strip_tags($body),
 			);
 			if (!empty($this->messageColor)) {
 				$textdata['attachments'][0]['color'] = getMMMsgColor($this->messageColor);
