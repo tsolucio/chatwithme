@@ -14,7 +14,7 @@
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
 require_once 'modules/chatwithme/subitoutils.php';
-require_once 'modules/Timecontrol/Timecontrol.php';
+include_once 'modules/Timecontrol/Timecontrol.php';
 
 class cbmmActionsbcreatetime extends chatactionclass {
 	const STATUS_TIMER_CLOSED = 1;
