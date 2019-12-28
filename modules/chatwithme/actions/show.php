@@ -176,6 +176,16 @@ class cbmmActionshow extends chatactionclass {
 					'props' => array('chartdata'=>$this->getChartQuestionMD($q['answer'], $q['properties'], $q['module'], $q['type'])),
 				);
 				break;
+			case 'Mermaid':
+				$ret = array(
+					'response_type' => 'in_channel',
+					'attachments' => array(array(
+						'color' => getMMMsgColor('blue'),
+						'title' => $q['title'],
+					)),
+					'props' => array('mermaidData'=>$q['answer']),
+				);
+				break;
 			case 'Table':
 			default:
 				$ret = array(
