@@ -88,6 +88,7 @@ $mod_strings = array(
 	'RecordUpdated' => ':tada: Record updated successfully!',
 	'RecordNotUpdated' => 'Record update failed!',
 	'InvalidField' => ':x: Invalid field name',
+	'MMUserTEAMError' => 'Mattermost team (MM Team) is empty please fill it first',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
@@ -104,6 +105,5 @@ $mod_strings = array(
 	'taskforproject_command' => '**taskforproject** {ID} insert project to the timecontrol records',
 	'update_command' => '**update {crmid} {fieldname}={value}**: Update field value of a certain record',
 	'sbcreatetime_command' => '**time hh:mm "task description" {units} {yyyy-mm-dd} {"type"}**: will create a new time record',
-	'MMUserTEAMError' => 'Mattermost team (MM Team) is empty please fill it first',
 );
 ?>
