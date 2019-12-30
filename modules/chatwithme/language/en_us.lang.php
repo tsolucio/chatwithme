@@ -104,5 +104,6 @@ $mod_strings = array(
 	'taskforproject_command' => '**taskforproject** {ID} insert project to the timecontrol records',
 	'update_command' => '**update {crmid} {fieldname}={value}**: Update field value of a certain record',
 	'sbcreatetime_command' => '**time hh:mm "task description" {units} {yyyy-mm-dd} {"type"}**: will create a new time record',
+	'MMUserTEAMError' => 'Mattermost team (MM Team) is empty please fill it first',
 );
 ?>
