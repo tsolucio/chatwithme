@@ -16,7 +16,7 @@
 require 'modules/chatwithme/vendor/autoload.php';
 use League\HTMLToMarkdown\HtmlConverter;
 
-include 'vtlib/Vtiger/Net/Client.php';
+include_once 'vtlib/Vtiger/Net/Client.php';
 
 /**
  * Send message to mattermost

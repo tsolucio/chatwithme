@@ -90,6 +90,11 @@ class chatwithme extends CRMEntity {
 			$taskManager->saveTask($task);
 			$url = 'index.php?module=chatwithme&action=chatwithmeAjax&file=syncmmuser&return_module=$MODULE$&return_action=DetailView&usrid=$RECORD$';
 			BusinessActions::addLink(getTabid('Users'), 'DETAILVIEWBASIC', 'Sync with Mattermost', $url, '', 0, '', true, 0);
+			$gvmoduleInstance = Vtiger_Module::getInstance('GlobalVariable');
+			$gvfield = Vtiger_Field::getInstance('gvname', $gvmoduleInstance);
+			if ($gvfield) {
+				$gvfield->setPicklistValues(array('CWM_TC_ProjectTask', 'CWM_TC_ProjectSubTask'));
+			}
 		} elseif ($event_type == 'module.disabled') {
 			// TODO Handle actions when this module is disabled.
 			$adb->query("DELETE FROM vtiger_notificationdrivers WHERE type='CWM' and path='modules/chatwithme/cwmapi.php' and functionname='__cwmDoNothing'");

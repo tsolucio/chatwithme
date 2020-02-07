@@ -14,6 +14,7 @@
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
 require_once 'include/Webservices/Revise.php';
+require_once 'include/Webservices/Retrieve.php';
 require_once 'include/Webservices/Create.php';
 require_once 'modules/cbMap/cbMap.php';
 require_once 'modules/cbMap/processmap/processMap.php';
@@ -56,6 +57,116 @@ function getProjectIDToRelateWith($channel) {
 		$record = vtws_getEntityId('Project').'x'.$rs->fields['projectid'];
 	}
 	return $record;
+}
+
+function sbProjectTaskExist($projectbrand, $prjtsk) {
+	global $adb;
+	$rstasks = $adb->pquery(
+		'select 1
+			from vtiger_projecttask
+			inner join vtiger_crmentity on crmid=projecttaskid
+			inner join vtiger_project on vtiger_project.projectid=vtiger_projecttask.projectid
+			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? limit 1',
+		array($projectbrand, $prjtsk)
+	);
+	return ($rstasks && $adb->num_rows($rstasks)>0);
+}
+
+function sbgetPrjTaskStatus($status) {
+	global $adb;
+	$rstasks = $adb->pquery('select 1 from vtiger_projecttaskstatus where projecttaskstatus=?', array($status));
+	return ($rstasks && $adb->num_rows($rstasks)>0);
+}
+
+function sbProjectSubTaskExist($projectbrand, $prjtsk, $prjsubtsk) {
+	global $adb;
+	$rstasks = $adb->pquery(
+		'select 1
+			from vtiger_projectsubtask
+			inner join vtiger_crmentity on crmid=projectsubtaskid
+			inner join vtiger_projecttask on vtiger_projecttask.projecttaskid=vtiger_projectsubtask.projecttaskid
+			inner join vtiger_project on vtiger_project.projectid=vtiger_projecttask.projectid
+			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? and projectsubtaskname=? limit 1',
+		array($projectbrand, $prjtsk, $prjsubtsk)
+	);
+	return ($rstasks && $adb->num_rows($rstasks)>0);
+}
+
+function sbgetPrjSubTaskStatus($status) {
+	global $adb;
+	$rstasks = $adb->pquery('select 1 from vtiger_projectsubtaskstatus where projectsubtaskstatus=?', array($status));
+	return ($rstasks && $adb->num_rows($rstasks)>0);
+}
+
+function changePrjSubTaskStatus($projectbrand, $prjtsk, $prjsubtsk, $tskstatus) {
+	global $adb, $current_user;
+	$rstasks = $adb->pquery(
+		'select projectsubtaskid
+			from vtiger_projectsubtask
+			inner join vtiger_crmentity on crmid=projectsubtaskid
+			inner join vtiger_projecttask on vtiger_projecttask.projecttaskid=vtiger_projectsubtask.projecttaskid
+			inner join vtiger_project on vtiger_project.projectid=vtiger_projecttask.projectid
+			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? and projectsubtaskname=? limit 1',
+		array($projectbrand, $prjtsk, $prjsubtsk)
+	);
+	if ($rstasks && $adb->num_rows($rstasks)>0) {
+		$element = array(
+			'id' => vtws_getEntityId('ProjectTask').'x'.$rstasks->fields['projecttaskid'],
+			'projecttaskstatus' => $tskstatus,
+		);
+		return vtws_revise($element, $current_user);
+	}
+	return false;
+}
+
+function changePrjTaskStatus($projectbrand, $prjtsk, $tskstatus) {
+	global $adb, $current_user;
+	$rstasks = $adb->pquery(
+		'select projecttaskid
+			from vtiger_projecttask
+			inner join vtiger_crmentity on crmid=projecttaskid
+			inner join vtiger_project on vtiger_project.projectid=vtiger_projecttask.projectid
+			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? limit 1',
+		array($projectbrand, $prjtsk)
+	);
+	if ($rstasks && $adb->num_rows($rstasks)>0) {
+		$element = array(
+			'id' => vtws_getEntityId('ProjectTask').'x'.$rstasks->fields['projecttaskid'],
+			'projecttaskstatus' => $tskstatus,
+		);
+		return vtws_revise($element, $current_user);
+	}
+	return false;
+}
+
+function sbgetAllProjectTasks($projectbrandname) {
+	global $adb;
+	$rs = $adb->pquery(
+		'select projectid
+			from vtiger_project
+			inner join vtiger_crmentity on crmid=projectid
+			where deleted=0 and projectname=?',
+		array($projectbrandname)
+	);
+	if ($rs && $adb->num_rows($rs)==1) {
+		$projectid = $rs->fields['projectid'];
+	} else {
+		return array();
+	}
+	$rstasks = $adb->pquery(
+		'select projecttaskid,projecttaskname
+			from vtiger_projecttask
+			inner join vtiger_crmentity on crmid=projecttaskid
+			where deleted=0 and projectid=?',
+		array($projectid)
+	);
+	$tasksArray = array();
+	if ($rstasks) {
+		while ($ptsk = $adb->fetch_array($rstasks)) {
+			$tasksArray[] = $ptsk['projecttaskid'].'--'.$ptsk['projecttaskname'];
+		}
+	}
+	return $tasksArray;
 }
 
 function sbTypeOfWorkMapExist($projectbrand) {
@@ -191,7 +302,6 @@ function sbgetTypeOfWork($projectbrand, $typeofworkid) {
 
 function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $team) {
 	global $current_user, $adb;
-	$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
 	switch ($current_user->date_format) {
 		case 'dd-mm-yyyy':
 			$current_date = date('d-m-Y');
@@ -205,24 +315,35 @@ function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $te
 			break;
 	}
 	$time_end = date('H:i:s');
-	$data = array(
-		'id' => vtws_getEntityId('Timecontrol').'x'.$tcid,
-		'date_end' => $current_date,
-		'time_end' => $time_end,
-		'brand' => $brand,
-		'team' => $team,
-		'title' => $title,
-		'relconcept' => $prjtype,
-		'tcunits' => $units,
-		'typeofwork' => $type,
-		'relatedto' => $prjid,
-	);
+	$gvworkTypemode = GlobalVariable::getVariable('CWM_TC_TypeOfWork', 'Map', 'chatwithme', $current_user->id);
+	switch ($gvworkTypemode) {
+		case 'Map':
+			$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
+			$data = array(
+				'id' => vtws_getEntityId('Timecontrol').'x'.$tcid,
+				'date_end' => $current_date,
+				'time_end' => $time_end,
+				'brand' => $brand,
+				'team' => $team,
+				'title' => $title,
+				'relconcept' => $prjtype,
+				'tcunits' => $units,
+				'typeofwork' => $type,
+				'relatedto' => $prjid,
+			);
+			break;
+		case 'ProjectTask':
+			$taskdata = getProjectTaskDataToRelateWith($type);
+			$data = array(
+			);
+			break;
+	}
 	return vtws_revise($data, $current_user);
 }
 
 function stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $team) {
-	global $current_user, $adb;
-	$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
+	global $current_user, $adb, $log;
+	$gvworkTypemode = GlobalVariable::getVariable('CWM_TC_TypeOfWork', 'Map', 'chatwithme', $current_user->id);
 	switch ($current_user->date_format) {
 		case 'dd-mm-yyyy':
 			$current_date = date('d-m-Y', $date);
@@ -250,10 +371,15 @@ function stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $uni
 		'title' => $title,
 		'relconcept' => $prjtype,
 		'tcunits' => $units,
-		'typeofwork' => $type,
-		'relatedto' => $prjid,
 		'assigned_user_id' => $usrwsid = vtws_getEntityId('Users').'x'.$current_user->id,
 	);
+	if ($gvworkTypemode == 'Map') {
+		$data['relatedto'] = getProjectIDToRelateWith($brand.'-'.$prjtype);
+		$data['typeofwork'] = $type;
+	}
+	/**
+	 * 'date_end' => $current_date, 'time_end' => $time_end, 'totaltime' => $time,
+	 */
 	return vtws_create('Timecontrol', $data, $current_user);
 }
 ?>

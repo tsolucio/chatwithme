@@ -17,6 +17,7 @@ require_once 'modules/chatwithme/subitoutils.php';
 include_once 'modules/Timecontrol/Timecontrol.php';
 
 class cbmmActionsbcreatetime extends chatactionclass {
+	const NOOP = -1;
 	const STATUS_TIMER_CLOSED = 1;
 	const STATUS_MISSINGTYPE = 2;
 	const STATUS_BADFORMAT = 3;
@@ -25,19 +26,46 @@ class cbmmActionsbcreatetime extends chatactionclass {
 	const STATUS_TYPE_NOTFOUND = 6;
 	const STATUS_TIMEOVER8TOTAL = 7;
 	const STATUS_TIMEOVER8 = 8;
-	private $time_status;
-	private $timeinfo = array();
+	const STATUS_MISSINGPRJTASK = 9;
+	const STATUS_PRJTASK_NOTFOUND = 10;
+	const STATUS_PRJSUBTASK_NOTFOUND = 11;
+	const STATUS_PRJTASKSTATUS_NOTFOUND = 12;
+	const STATUS_PRJSUBTASKSTATUS_NOTFOUND = 13;
+	const STATUS_TIMER_CLOSED_STATUSNOTCHANGED=14;
+	public $time_status;
+	public $timeinfo = array();
 
 	public function getHelp() {
-		return ' - '.getTranslatedString('sbcreatetime_command', 'chatwithme');
+		$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
+		$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
+		if ($prjsubtsk && !$prjtsk) {
+			$prjtsk = 1;
+		}
+		if ($prjsubtsk) {
+			return ' - '.getTranslatedString('sbcreatetime_commandTskSubTsk', 'chatwithme');
+		} elseif ($prjtsk && !$prjsubtsk) {
+			return ' - '.getTranslatedString('sbcreatetime_commandTsk', 'chatwithme');
+		} else {
+			return ' - '.getTranslatedString('sbcreatetime_command', 'chatwithme');
+		}
 	}
 
 	public function process() {
 		global $current_user;
+		$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
+		$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
+		if ($prjsubtsk && !$prjtsk) {
+			$prjtsk = 1;
+		}
+		if ($prjsubtsk) {
+			$paramoffset = 2;
+		} else {
+			$paramoffset = 0;
+		}
 		$req = getMMRequest();
 		$this->timeinfo['team'] = $req['team_dname'];
 		$prm = parseMMMsgWithQuotes($req['text']);
-		if (count($prm)<3) {
+		if (count($prm)<(3+$paramoffset)) {
 			$this->time_status = self::STATUS_BADFORMAT;
 			return true;
 		}
@@ -54,10 +82,25 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		$this->timeinfo['time'] = $time;
 		$title = $prm[2];
 		$this->timeinfo['title'] = $title;
-		if (count($prm)==3) {
+		$this->timeinfo['typeofwork'] = '';
+		if (count($prm)==3+$paramoffset) {
 			$cn = explode('-', $req['channel_dname']);
 			$brand = $cn[0];
 			$prjtype = $cn[1];
+			// validate project task and project subtask
+			if ($prjsubtsk) {
+				if (!sbProjectTaskExist($req['channel_dname'], $prm[3])) {
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				}
+				if (!sbProjectSubTaskExist($req['channel_dname'], $prm[3], $prm[4])) {
+					$this->time_status = self::STATUS_PRJSUBTASK_NOTFOUND;
+					return true;
+				}
+			} elseif ($prjtsk) {
+				$this->time_status = self::STATUS_MISSINGPRJTASK;
+				return true;
+			}
 			if (!sbTypeOfWorkMapExist($req['channel_dname'])) {
 				$this->time_status = self::STATUS_TYPE_NOTFOUND;
 				return true;
@@ -67,18 +110,24 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			$this->timeinfo['datestart'] = date('Y-m-d');
 			return true;
 		}
-		if (count($prm)==4) {
-			$param = $prm[3];
-			if (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $param) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $param)
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $param) || preg_match('/\d\d\-\d\d/', $param)
+		if (count($prm)==4+$paramoffset) {
+			$param = $prm[3+$paramoffset];
+			if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param) || preg_match('/^\d\d\-\d\d$/', $param)
 			) {
 				$this->processDateField($param);
+				if ($this->time_status == self::STATUS_MISSINGTYPE && $prjtsk && $paramoffset==0) {
+					$this->time_status = self::STATUS_MISSINGPRJTASK;
+				}
 				return true;
 			} elseif (is_numeric($param)) {
 				// we have units > ask for type of request
 				$this->time_status = self::STATUS_MISSINGTYPE;
-				$units = $param;
-				$this->timeinfo['units'] = $param;
+				if ($prjtsk && $paramoffset==0) {
+					$this->time_status = self::STATUS_MISSINGPRJTASK;
+				}
+				$units = (int)$param;
+				$this->timeinfo['units'] = (int)$param;
 				return true;
 			} else {
 				$tow = sbgetTypeOfWork($req['channel_dname'], $param);
@@ -91,6 +140,11 @@ class cbmmActionsbcreatetime extends chatactionclass {
 						$this->time_status = self::STATUS_TIMEOVER8TOTAL;
 						return true;
 					}
+					if ($prjtsk && $paramoffset==0) {
+						$this->timeinfo['typeofwork'] = $param;
+						$this->time_status = self::STATUS_MISSINGPRJTASK;
+						return true;
+					}
 					$result = stoptimerDoCreateTC(time(), $time, $brand, $prjtype, $title, $param, 1, $req['team_dname']);
 					$time_array = explode(':', $result['totaltime']);
 					$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
@@ -99,42 +153,114 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_TIMER_CLOSED;
 					return true;
 				} else {
-					$this->time_status = self::STATUS_TYPE_NOTFOUND;
-					return true;
+					if ($prjsubtsk) {
+						$sttsk = sbgetPrjSubTaskStatus($param);
+						if (!$sttsk) {
+							$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+							return true;
+						} else {
+							// we have status > ask for type of request
+							$this->time_status = self::STATUS_MISSINGTYPE;
+							$this->timeinfo['taskstatus'] = $param;
+							return true;
+						}
+					} elseif ($prjtsk) {
+						$sttsk = sbgetPrjTaskStatus($param);
+						if (!$sttsk) {
+							if (sbProjectTaskExist($req['channel_dname'], $param)) {
+								// we have task > ask for type of request
+								$this->time_status = self::STATUS_MISSINGTYPE;
+								$this->timeinfo['projecttask'] = $param;
+								return true;
+							}
+							$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+							return true;
+						} else {
+							// we have status > ask for project task
+							$this->time_status = self::STATUS_MISSINGPRJTASK;
+							$this->timeinfo['taskstatus'] = $param;
+							return true;
+						}
+					} else {
+						$this->time_status = self::STATUS_TYPE_NOTFOUND;
+						return true;
+					}
 				}
 			}
 		}
-		if (count($prm)==5) {
-			if (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $prm[3]) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $prm[3])
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $prm[3]) || preg_match('/\d\d\-\d\d/', $prm[3])
+		if (count($prm)==5+$paramoffset) {
+			$param3 = $prm[3+$paramoffset];
+			$param4 = $prm[4+$paramoffset];
+			if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param3)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d$/', $param3)
 			) {
-				$date = $prm[3];
-				if (is_numeric($prm[4])) {
-					$units = $prm[4];
+				$date = $param3;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
 					$type = '';
+					$tskstatus = '';
+					$this->time_status = self::STATUS_MISSINGTYPE;
+					if ($prjtsk) {
+						$this->time_status = self::STATUS_MISSINGPRJTASK;
+					}
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = (int)$param4;
+					return true;
 				} else {
 					$units = 1;
-					$type = $prm[4];
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				}
-			} elseif (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $prm[4]) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $prm[4])
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $prm[4]) || preg_match('/\d\d\-\d\d/', $prm[4])
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param4)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d$/', $param4)
 			) {
-				$date = $prm[4];
-				if (is_numeric($prm[3])) {
-					$units = $prm[3];
+				$date = $param4;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
 					$type = '';
+					$tskstatus = '';
+					$this->time_status = self::STATUS_MISSINGTYPE;
+					if ($prjtsk) {
+						$this->time_status = self::STATUS_MISSINGPRJTASK;
+					}
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = (int)$param3;
+					return true;
 				} else {
 					$units = 1;
-					$type = $prm[3];
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($param3, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				}
-			} elseif (is_numeric($prm[3])) {
-				$units = $prm[3];
-				$type = $prm[4];
+			} elseif (is_numeric($param3)) {
 				$date = '';
-			} elseif (is_numeric($prm[4])) {
-				$units = $prm[4];
-				$type = $prm[3];
+				$units = (int)$param3;
+				$this->timeinfo['datestart'] = $date;
+				$this->timeinfo['units'] = $units;
+				$this->time_status = self::NOOP;
+				$this->processUnkownTextField($param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+				if ($this->time_status != self::NOOP) {
+					return true;
+				}
+			} elseif (is_numeric($param4)) {
 				$date = '';
+				$units = (int)$param4;
+				$this->timeinfo['datestart'] = $date;
+				$this->timeinfo['units'] = $units;
+				$this->time_status = self::NOOP;
+				$this->processUnkownTextField($param3, $req['channel_dname'], $prjtsk, $prjsubtsk);
+				if ($this->time_status != self::NOOP) {
+					return true;
+				}
 			} else {
 				$this->time_status = self::STATUS_BADFORMAT;
 				return true;
@@ -154,6 +280,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$date = time();
 			}
 			$this->timeinfo['units'] = $units;
+			$type = $this->timeinfo['typeofwork'];
 			$tow = sbgetTypeOfWork($req['channel_dname'], $type);
 			if ($tow) {
 				// we have all we need
@@ -170,6 +297,24 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
+				$tskstatus = $this->timeinfo['taskstatus'];
+				if ($tskstatus!='') {
+					if ($prjsubtsk) {
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					} elseif ($prjtsk) {
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					}
+				}
 				return true;
 			} elseif ($type != '') {
 				$this->time_status = self::STATUS_TYPE_NOTFOUND;
@@ -179,39 +324,696 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				return true;
 			}
 		}
-		if (count($prm)==6) {
-			if (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $prm[3]) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $prm[3])
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $prm[3]) || preg_match('/\d\d\-\d\d/', $prm[3])
+		if (count($prm)==6+$paramoffset) {
+			$param3 = $prm[3+$paramoffset];
+			$param4 = $prm[4+$paramoffset];
+			$param5 = $prm[5+$paramoffset];
+			if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param3)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d$/', $param3)
 			) {
-				$date = $prm[3];
-				if (is_numeric($prm[4])) {
-					$units = $prm[4];
-					$type = $prm[5];
+				$date = $param3;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$workwith = $param5;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				} else {
-					$units = $prm[5];
-					$type = $prm[4];
+					$units = 1;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				}
-			} elseif (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $prm[4]) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $prm[4])
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $prm[4]) || preg_match('/\d\d\-\d\d/', $prm[4])
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param4)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d$/', $param4)
 			) {
-				$date = $prm[4];
-				if (is_numeric($prm[3])) {
-					$units = $prm[3];
-					$type = $prm[5];
+				$date = $param4;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$workwith = $param5;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				} else {
-					$units = $prm[5];
-					$type = $prm[3];
+					$units = 1;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param3, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				}
-			} elseif (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $prm[5]) || preg_match('/\d\d\-\d\d\-\d\d\d\d/', $prm[5])
-				|| preg_match('/\d\d\-\d\d\-\d\d/', $prm[5]) || preg_match('/\d\d\-\d\d/', $prm[5])
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param5)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d$/', $param5)
 			) {
-				$date = $prm[5];
-				if (is_numeric($prm[3])) {
-					$units = $prm[3];
-					$type = $prm[4];
+				$date = $param5;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param4)) {
+					$units = (int)$param4;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
 				} else {
-					$units = $prm[4];
-					$type = $prm[3];
+					$units = 1;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param3, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+			} else {
+				$this->timeinfo['datestart'] = '';
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param4)) {
+					$units = (int)$param4;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param3, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($param3, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					if ($prjsubtsk) {
+						$this->time_status = self::STATUS_BADFORMAT;
+						return true;
+					}
+					$units = 1;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+				$this->time_status = self::STATUS_BADFORMAT;
+				return true;
+			}
+			if (!is_numeric($units)) {
+				$this->time_status = self::STATUS_BADFORMAT;
+				return true;
+			}
+			$this->processDateField($date);
+			if ($this->time_status == self::STATUS_DATEFORMAT) {
+				return true;
+			}
+			list($y, $m, $d) = explode('-', $this->timeinfo['datestart']);
+			$date = mktime(0, 0, 0, $m, $d, $y);
+			$this->timeinfo['units'] = $units;
+			$type = $this->timeinfo['typeofwork'];
+			$tow = sbgetTypeOfWork($req['channel_dname'], $type);
+			if ($tow) {
+				// we have all we need
+				$cn = explode('-', $req['channel_dname']);
+				$brand = $cn[0];
+				$prjtype = $cn[1];
+				if (Timecontrol::userTotalTime(date('Y-m-d', $date), $current_user->id)>8*60) {
+					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
+					return true;
+				}
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$time_array = explode(':', $result['totaltime']);
+				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
+				$this->timeinfo['title'] = $title;
+				$this->timeinfo['typeofwork'] = $type;
+				$this->time_status = self::STATUS_TIMER_CLOSED;
+				$tskstatus = $this->timeinfo['taskstatus'];
+				if ($tskstatus!='') {
+					if ($prjsubtsk) {
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					} elseif ($prjtsk) {
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					}
+				}
+				return true;
+			} else {
+				$this->time_status = self::STATUS_TYPE_NOTFOUND;
+				return true;
+			}
+		}
+		if (count($prm)==7+$paramoffset) {
+			$param3 = $prm[3+$paramoffset];
+			$param4 = $prm[4+$paramoffset];
+			$param5 = $prm[5+$paramoffset];
+			$param6 = $prm[6+$paramoffset];
+			if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param3)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d$/', $param3)
+			) {
+				$date = $param3;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$workwith = $param5;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$units = 1;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($workwith, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param4)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d$/', $param4)
+			) {
+				$date = $param4;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$workwith = $param5;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$units = 1;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($workwith, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param5)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d$/', $param5)
+			) {
+				$date = $param5;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param4)) {
+					$units = (int)$param4;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$units = 1;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($workwith, $param4, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param6) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param6)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param6) || preg_match('/^\d\d\-\d\d$/', $param6)
+			) {
+				$date = $param6;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$workwith = $param4;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process2UnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param4)) {
+					$units = (int)$param4;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->processUnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$units = 1;
+					$workwith = $param3;
+					$this->timeinfo['datestart'] = $date;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($workwith, $param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				}
+			} else {
+				if ($prjsubtsk) {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
+				} else {
+					$this->timeinfo['datestart'] = '';
+					if (is_numeric($param3)) {
+						$units = (int)$param3;
+						$this->timeinfo['units'] = $units;
+						$this->time_status = self::NOOP;
+						$this->process3UnkownTextField($param4, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+						if ($this->time_status != self::NOOP) {
+							return true;
+						}
+					} elseif (is_numeric($param4)) {
+						$units = (int)$param4;
+						$this->timeinfo['units'] = $units;
+						$this->time_status = self::NOOP;
+						$this->process3UnkownTextField($param3, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+						if ($this->time_status != self::NOOP) {
+							return true;
+						}
+					} elseif (is_numeric($param5)) {
+						$units = (int)$param5;
+						$this->timeinfo['units'] = $units;
+						$this->time_status = self::NOOP;
+						$this->process3UnkownTextField($param3, $param4, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+						if ($this->time_status != self::NOOP) {
+							return true;
+						}
+					} elseif (is_numeric($param6)) {
+						$units = (int)$param6;
+						$this->timeinfo['units'] = $units;
+						$this->time_status = self::NOOP;
+						$this->process3UnkownTextField($param3, $param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+						if ($this->time_status != self::NOOP) {
+							return true;
+						}
+					} else {
+						$this->time_status = self::STATUS_BADFORMAT;
+						return true;
+					}
+				}
+			}
+			if (!is_numeric($units)) {
+				$this->time_status = self::STATUS_BADFORMAT;
+				return true;
+			}
+			$this->processDateField($date);
+			if ($this->time_status == self::STATUS_DATEFORMAT) {
+				return true;
+			}
+			list($y, $m, $d) = explode('-', $this->timeinfo['datestart']);
+			$date = mktime(0, 0, 0, $m, $d, $y);
+			$this->timeinfo['units'] = $units;
+			$type = $this->timeinfo['typeofwork'];
+			$tow = sbgetTypeOfWork($req['channel_dname'], $type);
+			if ($tow) {
+				// we have all we need
+				$cn = explode('-', $req['channel_dname']);
+				$brand = $cn[0];
+				$prjtype = $cn[1];
+				if (Timecontrol::userTotalTime(date('Y-m-d', $date), $current_user->id)>8*60) {
+					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
+					return true;
+				}
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$time_array = explode(':', $result['totaltime']);
+				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
+				$this->timeinfo['title'] = $title;
+				$this->timeinfo['typeofwork'] = $type;
+				$this->time_status = self::STATUS_TIMER_CLOSED;
+				if ($tskstatus!='') {
+					if ($prjsubtsk) {
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					} elseif ($prjtsk) {
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					}
+				}
+				return true;
+			} else {
+				$this->time_status = self::STATUS_TYPE_NOTFOUND;
+				return true;
+			}
+		}
+		if (count($prm)==8) {
+			$param3 = $prm[3];
+			$param4 = $prm[4];
+			$param5 = $prm[5];
+			$param6 = $prm[6];
+			$param7 = $prm[7];
+			if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param3)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param3) || preg_match('/^\d\d\-\d\d$/', $param3)
+			) {
+				$date = $param3;
+				$this->timeinfo['datestart'] = $date;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param5, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param5, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param7)) {
+					$units = (int)$param7;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param4)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param4) || preg_match('/^\d\d\-\d\d$/', $param4)
+			) {
+				$date = $param4;
+				$this->timeinfo['datestart'] = $date;
+				if (is_numeric($param3)) {
+					$units = (int)$param3;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param5, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param5, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param7)) {
+					$units = (int)$param7;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param5)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param5) || preg_match('/^\d\d\-\d\d$/', $param5)
+			) {
+				$date = $param5;
+				$this->timeinfo['datestart'] = $date;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param3)) {
+					$units = (int)$param3;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param6, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param7)) {
+					$units = (int)$param7;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param6) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param6)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param6) || preg_match('/^\d\d\-\d\d$/', $param6)
+			) {
+				$date = $param6;
+				$this->timeinfo['datestart'] = $date;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param5, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param3)) {
+					$units = (int)$param3;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param5, $param7, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param7)) {
+					$units = (int)$param7;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
+				}
+			} elseif (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $param7) || preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $param7)
+				|| preg_match('/^\d\d\-\d\d\-\d\d$/', $param7) || preg_match('/^\d\d\-\d\d$/', $param7)
+			) {
+				$date = $param7;
+				$this->timeinfo['datestart'] = $date;
+				if (is_numeric($param4)) {
+					$units = (int)$param4;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param5)) {
+					$units = (int)$param5;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param3)) {
+					$units = (int)$param3;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param4, $param5, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} elseif (is_numeric($param6)) {
+					$units = (int)$param6;
+					$this->timeinfo['units'] = $units;
+					$this->time_status = self::NOOP;
+					$this->process3UnkownTextField($param3, $param4, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					if ($this->time_status != self::NOOP) {
+						return true;
+					}
+				} else {
+					$this->time_status = self::STATUS_BADFORMAT;
+					return true;
 				}
 			} else {
 				$this->time_status = self::STATUS_BADFORMAT;
@@ -228,6 +1030,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			list($y, $m, $d) = explode('-', $this->timeinfo['datestart']);
 			$date = mktime(0, 0, 0, $m, $d, $y);
 			$this->timeinfo['units'] = $units;
+			$type = $this->timeinfo['typeofwork'];
 			$tow = sbgetTypeOfWork($req['channel_dname'], $type);
 			if ($tow) {
 				// we have all we need
@@ -244,6 +1047,23 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
+				if ($tskstatus!='') {
+					if ($prjsubtsk) {
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					} elseif ($prjtsk) {
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						if ($chgstatus) {
+							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						} else {
+							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
+						}
+					}
+				}
 				return true;
 			} else {
 				$this->time_status = self::STATUS_TYPE_NOTFOUND;
@@ -252,6 +1072,238 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		}
 		$this->time_status = self::STATUS_BADFORMAT;
 		return true;
+	}
+
+	private function processUnkownTextField($unknownfield, $chname, $prjtsk, $prjsubtsk) {
+		$tow = sbgetTypeOfWork($chname, $unknownfield);
+		if ($tow) {
+			$this->timeinfo['typeofwork'] = $unknownfield;
+			$this->timeinfo['taskstatus'] = '';
+			if ($prjtsk) {
+				$this->time_status = self::STATUS_MISSINGPRJTASK;
+				return true;
+			}
+		} else {
+			$workwith = $unknownfield;
+			if ($prjsubtsk) {
+				$sttsk = sbgetPrjSubTaskStatus($workwith);
+				if (!$sttsk) {
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+					return true;
+				} else {
+					// we have status > ask for type of request
+					$this->time_status = self::STATUS_MISSINGTYPE;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				}
+			} elseif ($prjtsk) {
+				$sttsk = sbgetPrjTaskStatus($workwith);
+				if (!$sttsk) {
+					if (sbProjectTaskExist($chname, $workwith)) {
+						// we have task > ask for type of request
+						$this->time_status = self::STATUS_MISSINGTYPE;
+						$this->timeinfo['projecttask'] = $workwith;
+						return true;
+					}
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				} else {
+					// we have status > ask for project task
+					$this->time_status = self::STATUS_MISSINGPRJTASK;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				}
+			} else {
+				$this->time_status = self::STATUS_TYPE_NOTFOUND;
+				return true;
+			}
+		}
+	}
+
+	private function process2UnkownTextField($unknownfield1, $unknownfield2, $chname, $prjtsk, $prjsubtsk) {
+		$tow = sbgetTypeOfWork($chname, $unknownfield1);
+		if ($tow) {
+			$this->timeinfo['typeofwork'] = $unknownfield1;
+			$workwith = $unknownfield2;
+			if ($prjsubtsk) {
+				$sttsk = sbgetPrjSubTaskStatus($workwith);
+				if (!$sttsk) {
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+					return true;
+				} else {
+					// we have status > we have all we need
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				}
+			} elseif ($prjtsk) {
+				$sttsk = sbgetPrjTaskStatus($workwith);
+				if (!$sttsk) {
+					if (sbProjectTaskExist($chname, $workwith)) {
+						// we have task > we have all we need
+						$this->time_status = self::STATUS_TIMER_CLOSED;
+						$this->timeinfo['projecttask'] = $workwith;
+						return true;
+					}
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				} else {
+					// we have status > ask for project task
+					$this->time_status = self::STATUS_MISSINGPRJTASK;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				}
+			}
+			$this->timeinfo['taskstatus'] = '';
+			$this->time_status = self::STATUS_BADFORMAT;
+			return true;
+		} else {
+			$workwith = $unknownfield1;
+			if ($prjsubtsk) {
+				$this->timeinfo['typeofwork'] = $unknownfield2;
+				$sttsk = sbgetPrjSubTaskStatus($workwith);
+				if (!$sttsk) {
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+					return true;
+				} else {
+					// we have status > we have all we need
+					$this->time_status = self::NOOP;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				}
+			} elseif ($prjtsk) {
+				if (sbgetPrjTaskStatus($workwith)) {
+					$this->timeinfo['taskstatus'] = $unknownfield1;
+					$workwith = $unknownfield2;
+				} else {
+					if (sbgetPrjTaskStatus($unknownfield2)) {
+						$this->timeinfo['taskstatus'] = $unknownfield2;
+					} elseif (sbgetTypeOfWork($chname, $unknownfield2)) {
+						$this->timeinfo['typeofwork'] = $unknownfield2;
+					} else {
+						$this->time_status = self::STATUS_BADFORMAT;
+						return true;
+					}
+					$workwith = $unknownfield1;
+				}
+				if (sbProjectTaskExist($chname, $workwith)) {
+					$this->timeinfo['projecttask'] = $workwith;
+					if (!empty($this->timeinfo['typeofwork'])) {
+						// we have all we need
+						$this->time_status = self::STATUS_TIMER_CLOSED;
+						return true;
+					}
+					// we have task > ask for type of request
+					$this->time_status = self::STATUS_MISSINGTYPE;
+					return true;
+				}
+				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+				return true;
+			} else {
+				$this->time_status = self::STATUS_BADFORMAT;
+				return true;
+			}
+		}
+	}
+
+	private function process3UnkownTextField($unknownfield1, $unknownfield2, $unknownfield3, $chname, $prjtsk, $prjsubtsk) {
+		if (sbgetTypeOfWork($chname, $unknownfield1)) {
+			$this->timeinfo['typeofwork'] = $unknownfield1;
+			$workwith = $unknownfield2;
+			$sttsk = sbgetPrjTaskStatus($workwith);
+			if ($sttsk) {
+				$this->timeinfo['taskstatus'] = $workwith;
+				if (sbProjectTaskExist($chname, $unknownfield3)) {
+					// we have status > we have all we need
+					$this->timeinfo['projecttask'] = $unknownfield3;
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					return true;
+				} else {
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				}
+			} else {
+				if (sbgetPrjTaskStatus($unknownfield3)) {
+					$this->timeinfo['taskstatus'] = $unknownfield3;
+				} else {
+					$this->time_status = self::STATUS_PRJTASKSTATUS_NOTFOUND;
+					return true;
+				}
+				if (sbProjectTaskExist($chname, $workwith)) {
+					// we have task > we have all we need
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->timeinfo['projecttask'] = $workwith;
+					return true;
+				}
+				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+			}
+			return true;
+		} elseif (sbgetTypeOfWork($chname, $unknownfield2)) {
+			$this->timeinfo['typeofwork'] = $unknownfield2;
+			$workwith = $unknownfield1;
+			$sttsk = sbgetPrjTaskStatus($workwith);
+			if ($sttsk) {
+				$this->timeinfo['taskstatus'] = $workwith;
+				if (sbProjectTaskExist($chname, $unknownfield3)) {
+					// we have status > we have all we need
+					$this->timeinfo['projecttask'] = $unknownfield3;
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					return true;
+				} else {
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				}
+			} else {
+				if (sbgetPrjTaskStatus($unknownfield3)) {
+					$this->timeinfo['taskstatus'] = $unknownfield3;
+				} else {
+					$this->time_status = self::STATUS_PRJTASKSTATUS_NOTFOUND;
+					return true;
+				}
+				if (sbProjectTaskExist($chname, $workwith)) {
+					// we have task > we have all we need
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->timeinfo['projecttask'] = $workwith;
+					return true;
+				}
+				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+			}
+			return true;
+		} elseif (sbgetTypeOfWork($chname, $unknownfield3)) {
+			$this->timeinfo['typeofwork'] = $unknownfield3;
+			$workwith = $unknownfield1;
+			$sttsk = sbgetPrjTaskStatus($workwith);
+			if ($sttsk) {
+				$this->timeinfo['taskstatus'] = $workwith;
+				if (sbProjectTaskExist($chname, $unknownfield2)) {
+					// we have status > we have all we need
+					$this->timeinfo['projecttask'] = $unknownfield2;
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					return true;
+				} else {
+					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+					return true;
+				}
+			} else {
+				if (sbgetPrjTaskStatus($unknownfield2)) {
+					$this->timeinfo['taskstatus'] = $unknownfield2;
+				} else {
+					$this->time_status = self::STATUS_PRJTASKSTATUS_NOTFOUND;
+					return true;
+				}
+				if (sbProjectTaskExist($chname, $workwith)) {
+					// we have task > we have all we need
+					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->timeinfo['projecttask'] = $workwith;
+					return true;
+				}
+				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+			}
+			return true;
+		} else {
+			$this->time_status = self::STATUS_BADFORMAT;
+			return true;
+		}
 	}
 
 	private function processTimeField($timevalue) {
@@ -274,13 +1326,14 @@ class cbmmActionsbcreatetime extends chatactionclass {
 	}
 
 	private function processDateField($datevalue) {
-		if (preg_match('/\d\d\d\d\-\d\d\-\d\d/', $datevalue)) {
+		global $current_user;
+		if (preg_match('/^\d\d\d\d\-\d\d\-\d\d$/', $datevalue)) {
 			list($y, $m, $d) = explode('-', $datevalue);
 			if (!checkdate($m, $d, $y)) {
 				$this->time_status = self::STATUS_DATEFORMAT;
 				return true;
 			}
-		} elseif (preg_match('/\d\d\-\d\d\-\d\d\d\d/', $datevalue)) {
+		} elseif (preg_match('/^\d\d\-\d\d\-\d\d\d\d$/', $datevalue)) {
 			switch ($current_user->date_format) {
 				case 'dd-mm-yyyy':
 					list($d, $m, $y) = explode('-', $datevalue);
@@ -293,7 +1346,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$this->time_status = self::STATUS_DATEFORMAT;
 				return true;
 			}
-		} elseif (preg_match('/\d\d\-\d\d\-\d\d/', $datevalue)) {
+		} elseif (preg_match('/^\d\d\-\d\d\-\d\d$/', $datevalue)) {
 			switch ($current_user->date_format) {
 				case 'dd-mm-yyyy':
 					list($d, $m, $y) = explode('-', $datevalue);
@@ -310,7 +1363,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$this->time_status = self::STATUS_DATEFORMAT;
 				return true;
 			}
-		} elseif (preg_match('/\d\d\-\d\d/', $datevalue)) {
+		} elseif (preg_match('/^\d\d\-\d\d$/', $datevalue)) {
 			switch ($current_user->date_format) {
 				case 'dd-mm-yyyy':
 					list($d, $m) = explode('-', $datevalue);
@@ -339,7 +1392,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 	}
 
 	public function getResponse() {
-		global $current_user, $site_URL;
+		global $site_URL;
 		if ($this->time_status == self::STATUS_BADFORMAT) {
 			$ret = array(
 				'response_type' => 'in_channel',
