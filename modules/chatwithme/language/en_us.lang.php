@@ -89,6 +89,8 @@ $mod_strings = array(
 	'RecordNotUpdated' => 'Record update failed!',
 	'InvalidField' => ':x: Invalid field name',
 	'MMUserTEAMError' => 'Mattermost team (MM Team) is empty please fill it first',
+	'JoinMeeting' => 'Join the meeting',
+	'RoomCreated' => 'Meeting room created.',
 	// commands
 	'delete_command' => '**delete {record} [yes]**: Delete a record',
 	'show_command' => '**show {question}**: Launch a question and see the results',
@@ -107,5 +109,6 @@ $mod_strings = array(
 	'sbcreatetime_command' => '**time hh:mm "task description" {units} {yyyy-mm-dd} {"type"} {"new status"}**: will create a new time record',
 	'sbcreatetime_commandTsk' => '**time hh:mm projecttask "task description" {units} {yyyy-mm-dd} {"type"} {"new status"}**: will create a new time record',
 	'sbcreatetime_commandTskSubTsk' => '**time hh:mm projecttask projectsubtask "task description" {units} {yyyy-mm-dd} {"type"} {"new status"}**: will create a new time record',
+	'video_command' => '**video {name}**: will share a link to a video chat room. If no name is given the channel name will be used',
 );
 ?>

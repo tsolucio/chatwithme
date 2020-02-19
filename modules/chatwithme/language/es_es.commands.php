@@ -24,7 +24,9 @@ $cwmcommands = array(
 	'avisame' => 'remindme',
 	'lista' => 'list',
 	'tareadeltiempo' => 'task',
-	'tiempo' => 'timespent',
+	'tiempoinvertido' => 'timespent',
+	'tiempo' => 'sbcreatetime',
+	'video' => 'video',
 );
 
 /*
