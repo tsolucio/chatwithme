@@ -41,7 +41,7 @@ class cbmmActionallprojects extends chatactionclass {
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
 				'color' => getMMMsgColor('yellow'),
-				'title' => getTranslatedString('TimerStoped1', 'chatwithme') .$stoped_at.getTranslatedString('TimerStoped2', 'chatwithme'),
+				'title' => getTranslatedString('TimerStoped1', 'chatwithme') .$stoped_at.getTranslatedString('TimerStopedTOW', 'chatwithme'),
 				'text' => getTranslatedString('TypeProject', 'chatwithme')."\n\n".$this->getProjects(),
 			)),
 		);

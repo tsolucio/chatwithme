@@ -30,6 +30,7 @@ class cbmmActionstoptimer extends chatactionclass {
 	private $title = '';
 	private $typeofwork = '';
 	private $stoped_at;
+	private $ptask;
 
 	public function getHelp() {
 		return ' - '.getTranslatedString('stoptimer_command', 'chatwithme');
@@ -203,16 +204,22 @@ class cbmmActionstoptimer extends chatactionclass {
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
-					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStoped2', 'chatwithme'),
+					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStopedTOW', 'chatwithme'),
 					'actions' => $fieldsArray
 				)),
 			);
 			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_TIMER_CLOSED) {
+			$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
+			$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
+			if ($prjsubtsk && !$prjtsk) {
+				$prjtsk = 1;
+			}
 			$ret = array(
 				'response_type' => 'in_channel',
 				'text' => getTranslatedString('UpdateFeedback1', 'chatwithme').$this->stoped_at.' '
 					.getTranslatedString('UpdateFeedback2', 'chatwithme').' "'.$this->title.'"'
+					.($prjtsk ? getTranslatedString('UpdateFeedback4', 'chatwithme').' "'.$this->ptask.'"' : '')
 					.getTranslatedString('UpdateFeedback3', 'chatwithme').' "'.$this->typeofwork.'"',
 			);
 			return $ret;

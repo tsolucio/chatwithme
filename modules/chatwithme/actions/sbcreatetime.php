@@ -83,6 +83,19 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		$title = $prm[2];
 		$this->timeinfo['title'] = $title;
 		$this->timeinfo['typeofwork'] = '';
+		// validate project task and project subtask
+		if ($prjsubtsk) {
+			if (!sbProjectTaskExist($req['channel_dname'], $prm[2])) {
+				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+				return true;
+			}
+			$this->timeinfo['projecttask'] = $prm[2];
+			if (!sbProjectSubTaskExist($req['channel_dname'], $prm[2], $prm[3])) {
+				$this->time_status = self::STATUS_PRJSUBTASK_NOTFOUND;
+				return true;
+			}
+			$this->timeinfo['projectsubtask'] = $prm[3];
+		}
 		if (count($prm)==3+$paramoffset) {
 			$cn = explode('-', $req['channel_dname']);
 			$brand = $cn[0];
@@ -93,10 +106,12 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
 					return true;
 				}
+				$this->timeinfo['projecttask'] = $prm[3];
 				if (!sbProjectSubTaskExist($req['channel_dname'], $prm[3], $prm[4])) {
 					$this->time_status = self::STATUS_PRJSUBTASK_NOTFOUND;
 					return true;
 				}
+				$this->timeinfo['projectsubtask'] = $prm[4];
 			} elseif ($prjtsk) {
 				$this->time_status = self::STATUS_MISSINGPRJTASK;
 				return true;
@@ -145,7 +160,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 						$this->time_status = self::STATUS_MISSINGPRJTASK;
 						return true;
 					}
-					$result = stoptimerDoCreateTC(time(), $time, $brand, $prjtype, $title, $param, 1, $req['team_dname']);
+					$result = stoptimerDoCreateTC(time(), $time, $brand, $prjtype, $title, $param, 1, $req['team_dname'], '', '');
 					$time_array = explode(':', $result['totaltime']);
 					$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
 					$this->timeinfo['title'] = $title;
@@ -155,13 +170,13 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				} else {
 					if ($prjsubtsk) {
 						$sttsk = sbgetPrjSubTaskStatus($param);
-						if (!$sttsk) {
-							$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
-							return true;
-						} else {
+						if ($sttsk) {
 							// we have status > ask for type of request
 							$this->time_status = self::STATUS_MISSINGTYPE;
 							$this->timeinfo['taskstatus'] = $param;
+							return true;
+						} else {
+							$this->time_status = self::STATUS_MISSINGTYPE;
 							return true;
 						}
 					} elseif ($prjtsk) {
@@ -200,7 +215,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$type = '';
 					$tskstatus = '';
 					$this->time_status = self::STATUS_MISSINGTYPE;
-					if ($prjtsk) {
+					if ($prjtsk && !$prjsubtsk) {
 						$this->time_status = self::STATUS_MISSINGPRJTASK;
 					}
 					$this->timeinfo['datestart'] = $date;
@@ -225,7 +240,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$type = '';
 					$tskstatus = '';
 					$this->time_status = self::STATUS_MISSINGTYPE;
-					if ($prjtsk) {
+					if ($prjtsk && !$prjsubtsk) {
 						$this->time_status = self::STATUS_MISSINGPRJTASK;
 					}
 					$this->timeinfo['datestart'] = $date;
@@ -262,8 +277,15 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					return true;
 				}
 			} else {
-				$this->time_status = self::STATUS_BADFORMAT;
-				return true;
+				$date = '';
+				$units = 1;
+				$this->timeinfo['datestart'] = '';
+				$this->timeinfo['units'] = $units;
+				$this->time_status = self::NOOP;
+				$this->process2UnkownTextField($param3, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+				if ($this->time_status != self::NOOP) {
+					return true;
+				}
 			}
 			if (!is_numeric($units)) {
 				$this->time_status = self::STATUS_BADFORMAT;
@@ -291,23 +313,25 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
 					return true;
 				}
-				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$pt = (empty($this->timeinfo['projecttask']) ? '' : $this->timeinfo['projecttask']);
+				$pst = (empty($this->timeinfo['projectsubtask']) ? '' : $this->timeinfo['projectsubtask']);
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname'], $pt, $pst);
 				$time_array = explode(':', $result['totaltime']);
 				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
-				$tskstatus = $this->timeinfo['taskstatus'];
+				$tskstatus = isset($this->timeinfo['taskstatus']) ? $this->timeinfo['taskstatus'] : '';
 				if ($tskstatus!='') {
 					if ($prjsubtsk) {
-						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $this->timeinfo['projectsubtask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
 							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						}
 					} elseif ($prjtsk) {
-						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
@@ -431,7 +455,8 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					}
 				}
 			} else {
-				$this->timeinfo['datestart'] = '';
+				$date = date('Y-m-d');
+				$this->timeinfo['datestart'] = $date;
 				if (is_numeric($param3)) {
 					$units = (int)$param3;
 					$this->timeinfo['units'] = $units;
@@ -469,8 +494,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 						return true;
 					}
 				}
-				$this->time_status = self::STATUS_BADFORMAT;
-				return true;
 			}
 			if (!is_numeric($units)) {
 				$this->time_status = self::STATUS_BADFORMAT;
@@ -494,23 +517,25 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
 					return true;
 				}
-				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$pt = (empty($this->timeinfo['projecttask']) ? '' : $this->timeinfo['projecttask']);
+				$pst = (empty($this->timeinfo['projectsubtask']) ? '' : $this->timeinfo['projectsubtask']);
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname'], $pt, $pst);
 				$time_array = explode(':', $result['totaltime']);
 				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
-				$tskstatus = $this->timeinfo['taskstatus'];
+				$tskstatus = isset($this->timeinfo['taskstatus']) ? $this->timeinfo['taskstatus'] : '';
 				if ($tskstatus!='') {
 					if ($prjsubtsk) {
-						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $this->timeinfo['projectsubtask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
 							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						}
 					} elseif ($prjtsk) {
-						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
@@ -594,7 +619,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -604,7 +629,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -639,7 +664,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param6, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -649,7 +674,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -684,7 +709,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param5, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -694,7 +719,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['datestart'] = $date;
 					$this->timeinfo['units'] = $units;
 					$this->time_status = self::NOOP;
-					$this->processUnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
+					$this->process2UnkownTextField($workwith, $param4, $req['channel_dname'], $prjtsk, $prjsubtsk);
 					if ($this->time_status != self::NOOP) {
 						return true;
 					}
@@ -710,6 +735,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					}
 				}
 			} else {
+				$date = date('Y-m-d');
 				if ($prjsubtsk) {
 					$this->time_status = self::STATUS_BADFORMAT;
 					return true;
@@ -775,22 +801,25 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
 					return true;
 				}
-				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$pt = (empty($this->timeinfo['projecttask']) ? '' : $this->timeinfo['projecttask']);
+				$pst = (empty($this->timeinfo['projectsubtask']) ? '' : $this->timeinfo['projectsubtask']);
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname'], $pt, $pst);
 				$time_array = explode(':', $result['totaltime']);
 				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
+				$tskstatus = isset($this->timeinfo['taskstatus']) ? $this->timeinfo['taskstatus'] : '';
 				if ($tskstatus!='') {
 					if ($prjsubtsk) {
-						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $this->timeinfo['projectsubtask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
 							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						}
 					} elseif ($prjtsk) {
-						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
@@ -1041,22 +1070,25 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->time_status = self::STATUS_TIMEOVER8TOTAL;
 					return true;
 				}
-				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname']);
+				$pt = (empty($this->timeinfo['projecttask']) ? '' : $this->timeinfo['projecttask']);
+				$pst = (empty($this->timeinfo['projectsubtask']) ? '' : $this->timeinfo['projectsubtask']);
+				$result = stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $req['team_dname'], $pt, $pst);
 				$time_array = explode(':', $result['totaltime']);
 				$this->timeinfo['time'] = (int)$time_array[0].'h '.$time_array[1].'m';
 				$this->timeinfo['title'] = $title;
 				$this->timeinfo['typeofwork'] = $type;
 				$this->time_status = self::STATUS_TIMER_CLOSED;
+				$tskstatus = $this->timeinfo['taskstatus'];
 				if ($tskstatus!='') {
 					if ($prjsubtsk) {
-						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $prm[2], $prm[3], $tskstatus);
+						$chgstatus = changePrjSubTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $this->timeinfo['projectsubtask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
 							$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						}
 					} elseif ($prjtsk) {
-						$chgstatus = changePrjTaskStatus($req['channel_dname'], $prm[2], $tskstatus);
+						$chgstatus = changePrjTaskStatus($req['channel_dname'], $this->timeinfo['projecttask'], $tskstatus);
 						if ($chgstatus) {
 							//$this->time_status = self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED;
 						} else {
@@ -1079,7 +1111,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		if ($tow) {
 			$this->timeinfo['typeofwork'] = $unknownfield;
 			$this->timeinfo['taskstatus'] = '';
-			if ($prjtsk) {
+			if ($prjtsk && !$prjsubtsk) {
 				$this->time_status = self::STATUS_MISSINGPRJTASK;
 				return true;
 			}
@@ -1087,16 +1119,16 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			$workwith = $unknownfield;
 			if ($prjsubtsk) {
 				$sttsk = sbgetPrjSubTaskStatus($workwith);
-				if (!$sttsk) {
-					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
-					return true;
-				} else {
+				if ($sttsk) {
 					// we have status > ask for type of request
 					$this->time_status = self::STATUS_MISSINGTYPE;
 					$this->timeinfo['taskstatus'] = $workwith;
 					return true;
+				} else {
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+					return true;
 				}
-			} elseif ($prjtsk) {
+			} elseif ($prjtsk && !$prjsubtsk) {
 				$sttsk = sbgetPrjTaskStatus($workwith);
 				if (!$sttsk) {
 					if (sbProjectTaskExist($chname, $workwith)) {
@@ -1127,30 +1159,30 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			$workwith = $unknownfield2;
 			if ($prjsubtsk) {
 				$sttsk = sbgetPrjSubTaskStatus($workwith);
-				if (!$sttsk) {
-					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
+				if ($sttsk) {
+					// we have status > we have all we need
+					$this->time_status = self::NOOP;
+					$this->timeinfo['taskstatus'] = $workwith;
 					return true;
 				} else {
-					// we have status > we have all we need
-					$this->time_status = self::STATUS_TIMER_CLOSED;
-					$this->timeinfo['taskstatus'] = $workwith;
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
 					return true;
 				}
 			} elseif ($prjtsk) {
 				$sttsk = sbgetPrjTaskStatus($workwith);
-				if (!$sttsk) {
+				if ($sttsk) {
+					// we have status > ask for project task
+					$this->time_status = self::STATUS_MISSINGPRJTASK;
+					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				} else {
 					if (sbProjectTaskExist($chname, $workwith)) {
 						// we have task > we have all we need
-						$this->time_status = self::STATUS_TIMER_CLOSED;
+						$this->time_status = self::NOOP;
 						$this->timeinfo['projecttask'] = $workwith;
 						return true;
 					}
 					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
-					return true;
-				} else {
-					// we have status > ask for project task
-					$this->time_status = self::STATUS_MISSINGPRJTASK;
-					$this->timeinfo['taskstatus'] = $workwith;
 					return true;
 				}
 			}
@@ -1162,13 +1194,13 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			if ($prjsubtsk) {
 				$this->timeinfo['typeofwork'] = $unknownfield2;
 				$sttsk = sbgetPrjSubTaskStatus($workwith);
-				if (!$sttsk) {
-					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
-					return true;
-				} else {
+				if ($sttsk) {
 					// we have status > we have all we need
 					$this->time_status = self::NOOP;
 					$this->timeinfo['taskstatus'] = $workwith;
+					return true;
+				} else {
+					$this->time_status = self::STATUS_PRJSUBTASKSTATUS_NOTFOUND;
 					return true;
 				}
 			} elseif ($prjtsk) {
@@ -1190,14 +1222,17 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$this->timeinfo['projecttask'] = $workwith;
 					if (!empty($this->timeinfo['typeofwork'])) {
 						// we have all we need
-						$this->time_status = self::STATUS_TIMER_CLOSED;
+						$this->time_status = self::NOOP;
 						return true;
 					}
 					// we have task > ask for type of request
 					$this->time_status = self::STATUS_MISSINGTYPE;
 					return true;
 				}
-				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
+				if (sbgetTypeOfWork($chname, $workwith)) {
+					$this->timeinfo['typeofwork'] = $workwith;
+				}
+				$this->time_status = self::STATUS_MISSINGPRJTASK;
 				return true;
 			} else {
 				$this->time_status = self::STATUS_BADFORMAT;
@@ -1216,7 +1251,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				if (sbProjectTaskExist($chname, $unknownfield3)) {
 					// we have status > we have all we need
 					$this->timeinfo['projecttask'] = $unknownfield3;
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					return true;
 				} else {
 					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
@@ -1231,7 +1266,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				}
 				if (sbProjectTaskExist($chname, $workwith)) {
 					// we have task > we have all we need
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					$this->timeinfo['projecttask'] = $workwith;
 					return true;
 				}
@@ -1247,7 +1282,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				if (sbProjectTaskExist($chname, $unknownfield3)) {
 					// we have status > we have all we need
 					$this->timeinfo['projecttask'] = $unknownfield3;
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					return true;
 				} else {
 					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
@@ -1262,7 +1297,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				}
 				if (sbProjectTaskExist($chname, $workwith)) {
 					// we have task > we have all we need
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					$this->timeinfo['projecttask'] = $workwith;
 					return true;
 				}
@@ -1278,7 +1313,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				if (sbProjectTaskExist($chname, $unknownfield2)) {
 					// we have status > we have all we need
 					$this->timeinfo['projecttask'] = $unknownfield2;
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					return true;
 				} else {
 					$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
@@ -1293,7 +1328,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				}
 				if (sbProjectTaskExist($chname, $workwith)) {
 					// we have task > we have all we need
-					$this->time_status = self::STATUS_TIMER_CLOSED;
+					$this->time_status = self::NOOP;
 					$this->timeinfo['projecttask'] = $workwith;
 					return true;
 				}
@@ -1393,12 +1428,13 @@ class cbmmActionsbcreatetime extends chatactionclass {
 
 	public function getResponse() {
 		global $site_URL;
+		$helpcommand = substr($this->getHelp(), 3);
 		if ($this->time_status == self::STATUS_BADFORMAT) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
-					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".getTranslatedString('sbcreatetime_command', 'chatwithme'),
+					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
 			return $ret;
@@ -1407,7 +1443,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('red'),
-					'text' => getTranslatedString('BadTimeFormat', 'chatwithme')."\n".getTranslatedString('sbcreatetime_command', 'chatwithme'),
+					'text' => getTranslatedString('BadTimeFormat', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
 			return $ret;
@@ -1434,7 +1470,43 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('red'),
-					'text' => getTranslatedString('BadDateFormat', 'chatwithme')."\n".getTranslatedString('sbcreatetime_command', 'chatwithme'),
+					'text' => getTranslatedString('BadDateFormat', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
+			return $ret;
+		} elseif ($this->time_status == self::STATUS_PRJTASK_NOTFOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('PrjTaskNotFound', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
+			return $ret;
+		} elseif ($this->time_status == self::STATUS_PRJSUBTASK_NOTFOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('PrjSubTaskNotFound', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
+			return $ret;
+		} elseif ($this->time_status == self::STATUS_PRJTASKSTATUS_NOTFOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('PrjTaskStatusNotFound', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
+			return $ret;
+		} elseif ($this->time_status == self::STATUS_PRJSUBTASKSTATUS_NOTFOUND) {
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('PrjSubTaskStatusNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
 			return $ret;
@@ -1443,7 +1515,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
-					'text' => getTranslatedString('WorkTypeNotFound', 'chatwithme')."\n".getTranslatedString('sbcreatetime_command', 'chatwithme'),
+					'text' => getTranslatedString('WorkTypeNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
 			return $ret;
@@ -1467,7 +1539,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				$action_data = array(
 					'name' => textlength_check(decode_html($value)),
 					'integration' => array(
-						'url' => $baseurl.'&wt='.$plid,
+						'url' => $baseurl.'&wt='.$plid.'&pl=t',
 					));
 				array_push($fieldsArray, $action_data);
 			}
@@ -1482,9 +1554,9 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					$fieldsArray[] =$opdata;
 				}
 				$fieldsArray = array(array(
-					'name' => 'Select a type of work',
+					'name' => getTranslatedString('SelectTOW', 'chatwithme'),
 					'integration' => array(
-						'url' => $baseurl,
+						'url' => $baseurl.'&pl=t',
 					),
 					'type' => 'select',
 					'options' => $fieldsArray
@@ -1494,16 +1566,74 @@ class cbmmActionsbcreatetime extends chatactionclass {
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
-					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStoped2', 'chatwithme'),
+					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStopedTOW', 'chatwithme'),
 					'actions' => $fieldsArray
 				)),
 			);
 			return $ret;
-		} elseif ($this->time_status == self::STATUS_TIMER_CLOSED) {
+		} elseif ($this->time_status == self::STATUS_MISSINGPRJTASK) {
+			$fieldsArray = array();
+			$req = getMMRequest();
+			$cn = explode('-', $req['channel_dname']);
+			$brand = $cn[0];
+			$prjtype = $cn[1];
+			$tcinfoid = uniqid('CTC');
+			coreBOS_Settings::setSetting($tcinfoid, json_encode($this->timeinfo));
+			$chnlsep = '::';
+			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
+				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
+			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
+			$baseurl = $site_URL.'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
+			$plvals = sbgetAllProjectTasks($req['channel_dname']);
+			asort($plvals);
+			foreach ($plvals as $plid => $value) {
+				$action_data = array(
+					'name' => textlength_check(decode_html($value)),
+					'integration' => array(
+						'url' => $baseurl.'&pt='.$plid.'&pl=p',
+					));
+				array_push($fieldsArray, $action_data);
+			}
+			$msglen = 200+strlen(json_encode($fieldsArray));
+			if ($msglen>6500) {
+				$fieldsArray = array();
+				foreach ($plvals as $plid => $value) {
+					$opdata = array(
+						'text' => textlength_check(decode_html($value)),
+						'value' => (string)$plid,
+					);
+					$fieldsArray[] =$opdata;
+				}
+				$fieldsArray = array(array(
+					'name' => getTranslatedString('SelectPRJ', 'chatwithme'),
+					'integration' => array(
+						'url' => $baseurl.'&pl=p',
+					),
+					'type' => 'select',
+					'options' => $fieldsArray
+				));
+			}
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStopedPRT', 'chatwithme'),
+					'actions' => $fieldsArray
+				)),
+			);
+			return $ret;
+		} elseif ($this->time_status == self::STATUS_TIMER_CLOSED || $this->time_status == self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED) {
+			$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
+			$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
+			if ($prjsubtsk && !$prjtsk) {
+				$prjtsk = 1;
+			}
 			$ret = array(
 				'response_type' => 'in_channel',
 				'text' => getTranslatedString('UpdateFeedback1', 'chatwithme').$this->timeinfo['time'].' '
 					.getTranslatedString('UpdateFeedback2', 'chatwithme').' "'.$this->timeinfo['title'].'"'
+					.($prjtsk ? getTranslatedString('UpdateFeedback4', 'chatwithme').' "'.$this->timeinfo['projecttask'].'"' : '')
 					.getTranslatedString('UpdateFeedback3', 'chatwithme').' "'.$this->timeinfo['typeofwork'].'"',
 			);
 			return $ret;

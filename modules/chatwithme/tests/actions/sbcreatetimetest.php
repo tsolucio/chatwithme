@@ -19,12 +19,41 @@
  *************************************************************************************************/
 use PHPUnit\Framework\TestCase;
 
-//build/coreBOSTests/phpunit -c build/coreBOSTests/phpunit.xml modules/chatwithme/tests/actions/sbcreatetimetest.php --filter=testprocessP
 include_once 'modules/chatwithme/cbmmbotutils.php';
 include_once 'modules/chatwithme/chatactionclass.php';
 include_once 'modules/chatwithme/actions/sbcreatetime.php';
 include_once 'include/Webservices/upsert.php';
 include_once 'include/Webservices/Delete.php';
+//build/coreBOSTests/phpunit -c build/coreBOSTests/phpunit.xml modules/chatwithme/tests/actions/sbcreatetimetest.php --filter=testprocessP
+/*
+time hm desc | unit date typeofwork
+time hm desc | u d t
+
+3.- no parameter > ask for type
+4.- u, d, t
+5.- ud, du, ut, tu, dt, td
+6.- udt, utd, dut, dtu, tud, tdu
+
+time hm desc | projecttask unit date typeofwork status
+time hm desc | p u d t s
+
+3.- no parameter
+4.- p, u, d, t, s
+5.- pu, pd, pt, ps, up, ud, ut, us, dp, du, dt, ds, tp, tu, td, ts, sp, su, sd, st
+6.- pud (perms), put (perms), pus (perms), pdt (perms), pds (perms), pts (perms), udt (perms), uds (perms), uts (perms), dts (perms) => 60
+7.-pudt (perms), puds (perms), pdts (perms), puts (perms), udts (perms) => 120
+8.- pudts (perms) => 120
+
+time hm desc projecttask projectsubtask | unit date typeofwork status
+time hm desc projecttask projectsubtask | u d t s
+
+5.- no parameter > ask for type
+6.- u, d, t, s
+7.- ud, du, ut, tu, us, su, dt, td, ds, sd, ts, st
+8.- udt (perms), uds (perms), uts (perms), dts (perms) => 24
+9.- udts (perms) => 24
+
+*/
 
 class testcbmmActionsbcreatetime extends TestCase {
 
@@ -273,7 +302,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => '',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 					)
 				)
@@ -433,39 +462,47 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'title' => 'desc',
 						'projecttask' => 'Joon Moon Yuc',
+						'typeofwork' => '',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" 3',
 				array(
-					'status' => 2,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'typeofwork' => '',
+						'units' => 3,
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" 2020-01-10',
 				array(
-					'status' => 2,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'typeofwork' => '',
+						'datestart' => '2020-01-10',
+						'units' => 1,
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" Open',
 				array(
-					'status' => 2,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'typeofwork' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -478,8 +515,8 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'units' => 3,
-						'datestart' => '',
+						'units' => 1,
+						'datestart' => '2020-01-01',
 						'taskstatus' => '',
 						'typeofwork' => 'Richiamo',
 					)
@@ -494,9 +531,8 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
 					)
 				)
 			),
@@ -509,24 +545,24 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" 2020-01-01 "Joon Moon Yuc"',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
@@ -554,9 +590,8 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
 					)
 				)
 			),
@@ -567,40 +602,40 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" 3 "Joon Moon Yuc"',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" "Joon Moon Yuc" Richiamo',
 				array(
-					'status' => 9,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'units' => 3,
+						'units' => 1,
 						'datestart' => '',
-						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
 						'typeofwork' => 'Richiamo',
 					)
 				)
@@ -608,45 +643,46 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" "Joon Moon Yuc" 2020-01-01',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" "Joon Moon Yuc" Open',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" "Joon Moon Yuc" 3',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
@@ -683,30 +719,30 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" Richiamo "Joon Moon Yuc"',
 				array(
-					'status' => 9,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'time' => '3h 10m',
+						'datestart' => '',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 1,
-						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'"desc" Richiamo Open',
+				$cmn.'desc Richiamo Open',
 				array(
 					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 1,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -718,9 +754,9 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'units' => 3,
+						'units' => 1,
 						'datestart' => '',
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 						'typeofwork' => 'Richiamo',
 					)
 				)
@@ -734,24 +770,25 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'"desc" Open "Joon Moon Yuc"',
 				array(
-					'status' => 9,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 1,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
@@ -762,11 +799,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => '',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'units' => 1,
-						'taskstatus' => '',
+						'typeofwork' => '',
+						'units' => 3,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -777,10 +814,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -792,10 +829,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -807,7 +844,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -822,7 +859,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -837,10 +874,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -853,10 +890,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -900,11 +937,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-01',
+						'datestart' => date('Y-m-d'),
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 3,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -915,11 +952,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-02',
+						'datestart' => date('Y-m-d'),
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 2,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -933,8 +970,8 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'datestart' => '2020-01-01',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'units' => 3,
-						'taskstatus' => '',
+						'units' => 1,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -948,8 +985,8 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'datestart' => '2020-01-02',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'units' => 2,
-						'taskstatus' => '',
+						'units' => 1,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -957,13 +994,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" 3 2020-01-02',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-02',
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -972,13 +1009,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" 2020-01-02 3',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-02',
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -990,10 +1027,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1005,10 +1042,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1017,14 +1054,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" 3 Open',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1032,14 +1070,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" Open 3',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1050,7 +1089,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -1065,7 +1104,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -1077,13 +1116,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" 2020-01-01 Open',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1093,13 +1132,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc "Joon Moon Yuc" Open 2020-01-01',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1112,10 +1151,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1128,10 +1167,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1142,13 +1181,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 3 "Joon Moon Yuc" 2020-01-01',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1157,13 +1196,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 3 2020-01-01 "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1175,10 +1214,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1190,10 +1229,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1202,14 +1241,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 3 "Joon Moon Yuc" Open',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1217,14 +1257,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 3 Open "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1253,9 +1294,9 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-02',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 3,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -1268,9 +1309,9 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'datestart' => '2020-01-02',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'units' => 3,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -1281,11 +1322,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-02',
+						'datestart' => date('Y-m-d'),
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 3,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -1296,11 +1337,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
-						'datestart' => '2020-01-02',
+						'datestart' => date('Y-m-d'),
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'units' => 3,
-						'taskstatus' => '',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -1308,14 +1349,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 "Joon Moon Yuc" 3',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
-						'units' => 1,
+						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1323,14 +1364,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 3 "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
-						'units' => 1,
+						'units' => 3,
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1341,7 +1382,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -1356,7 +1397,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
@@ -1368,14 +1409,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 "Joon Moon Yuc" Open',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
 						'units' => 1,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1383,14 +1425,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 Open "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
 						'units' => 1,
+						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
@@ -1428,37 +1471,37 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 3 Open',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
-						'units' => 1,
-						'projecttask' => 'Joon Moon Yuc',
+						'units' => 3,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 Open 3',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
+						'typeofwork' => '',
 						'datestart' => '2020-01-01',
-						'units' => 1,
-						'projecttask' => 'Joon Moon Yuc',
+						'units' => 3,
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 Richiamo Open',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
@@ -1466,14 +1509,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
 						'units' => 1,
-						'projecttask' => 'Joon Moon Yuc',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 2020-01-01 Open Richiamo',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
@@ -1481,7 +1524,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'typeofwork' => 'Richiamo',
 						'datestart' => '2020-01-01',
 						'units' => 1,
-						'projecttask' => 'Joon Moon Yuc',
+						'taskstatus' => 'Open',
 					)
 				)
 			),
@@ -1489,14 +1532,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open "Joon Moon Yuc" 3',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
+						'units' => 3,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1505,14 +1548,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 3 "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'typeofwork' => '',
+						'datestart' => date('Y-m-d'),
+						'units' => 3,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
 					)
@@ -1521,13 +1564,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open "Joon Moon Yuc" 2020-01-01',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1537,13 +1580,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 2020-01-01 "Joon Moon Yuc"',
 				array(
-					'status' => 1,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1556,10 +1599,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1572,10 +1615,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 1,
 						'taskstatus' => 'Open',
 						'projecttask' => 'Joon Moon Yuc',
@@ -1585,96 +1628,90 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 3 2020-01-01',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
+						'units' => 3,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 2020-01-01 3',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
-						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'typeofwork' => '',
+						'datestart' => '2020-01-01',
+						'units' => 3,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 3 Richiamo',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'datestart' => date('Y-m-d'),
+						'units' => 3,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open Richiamo 3',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
-						'units' => 1,
+						'datestart' => date('Y-m-d'),
+						'units' => 3,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open 2020-01-01 Richiamo',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc Open Richiamo 2020-01-01',
 				array(
-					'status' => 1,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => '2020-01-01',
 						'units' => 1,
 						'taskstatus' => 'Open',
-						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
@@ -1682,13 +1719,13 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'desc 3 202-41-02 Richiamo',
 				array(
-					'status' => 10,
+					'status' => 9,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
-						'datestart' => '',
+						'datestart' => date('Y-m-d'),
 						'units' => 3,
 					)
 				)
@@ -1723,12 +1760,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
 					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
-					'taskstatus' => 'Open',
+					'datestart' => '2020-01-01',
+					'units' => 3,
 					'projecttask' => 'Joon Moon Yuc',
 				)
 			)
@@ -1740,14 +1776,14 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 1,
+				'status' => 2,
 				'info' => array(
 					'team' => 'teamname',
 					'time' => '03:10',
 					'title' => 'desc',
-					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
+					'typeofwork' => '',
+					'datestart' => '2020-01-01',
+					'units' => 3,
 					'taskstatus' => 'Open',
 					'projecttask' => 'Joon Moon Yuc',
 				)
@@ -1763,10 +1799,10 @@ class testcbmmActionsbcreatetime extends TestCase {
 				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
 					'typeofwork' => 'Richiamo',
-					'datestart' => '',
+					'datestart' => '2020-01-01',
 					'units' => 1,
 					'taskstatus' => 'Open',
 					'projecttask' => 'Joon Moon Yuc',
@@ -1783,11 +1819,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
 					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
+					'datestart' => date('Y-m-d'),
+					'units' => 3,
 					'taskstatus' => 'Open',
 					'projecttask' => 'Joon Moon Yuc',
 				)
@@ -1800,36 +1836,15 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 1,
+				'status' => 9,
 				'info' => array(
 					'team' => 'teamname',
 					'time' => '03:10',
 					'title' => 'desc',
 					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
+					'datestart' => '2020-01-01',
+					'units' => 3,
 					'taskstatus' => 'Open',
-					'projecttask' => 'Joon Moon Yuc',
-				)
-			)
-		);
-		$this->tskPermute(array('u','d','t','s'), array(), 4, $return, $test);
-		$test = array(
-			'pname-brand',
-			'pname-brand',
-			'teamname',
-			'',
-			array(
-				'status' => 1,
-				'info' => array(
-					'team' => 'teamname',
-					'time' => '03:10',
-					'title' => 'desc',
-					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
-					'taskstatus' => 'Open',
-					'projecttask' => 'Joon Moon Yuc',
 				)
 			)
 		);
@@ -1844,11 +1859,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
 					'typeofwork' => 'Richiamo',
-					'datestart' => '',
-					'units' => 1,
+					'datestart' => '2020-01-01',
+					'units' => 3,
 					'taskstatus' => 'Open',
 					'projecttask' => 'Joon Moon Yuc',
 				)
@@ -1891,7 +1906,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'u' => '3', // u
 			'd' => '2020-01-01', // d
 			't' => 'Richiamo', // t
-			's' => 'Open', // s
+			's' => '40%', // s
 		);
 		if (empty($items)) {
 			return $perms;
@@ -1913,7 +1928,6 @@ class testcbmmActionsbcreatetime extends TestCase {
 					if ($parts>4) {
 						$test[3] .= ' '.$pudts[$ret[4]];
 					}
-					echo implode(' ', $ret).': '.$test[3]."\n";
 					$return[] = $test;
 				}
 			}
@@ -1927,6 +1941,25 @@ class testcbmmActionsbcreatetime extends TestCase {
 	 */
 	public function testprocessProject($cname, $cdname, $tname, $text, $expected) {
 		global $adb, $current_user;
+		$rs = $adb->pquery(
+			'select globalvariableid from vtiger_globalvariable inner join vtiger_crmentity on crmid=globalvariableid where deleted=0 and gvname=?',
+			array('CWM_TC_ProjectSubTask')
+		);
+		if ($rs && $adb->num_rows($rs)>0) {
+			vtws_delete(vtws_getEntityId('GlobalVariable').'x'.$rs->fields['globalvariableid'], $current_user);
+		}
+		$rec =  array(
+			'default_check' => '1',
+			'mandatory' => '0',
+			'blocked' => '0',
+			'module_list' => '',
+			'category' => 'Application',
+			'in_module_list' => '',
+			'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
+			'gvname' => 'CWM_TC_ProjectTask',
+			'value' => 1,
+		);
+		vtws_upsert('GlobalVariable', $rec, 'gvname', implode(',', array_keys($rec)), $current_user);
 		$_REQUEST['channel_name'] = $cname;
 		$_REQUEST['chnl_dname'] = $cdname;
 		$_REQUEST['text'] = $text;
@@ -1991,9 +2024,6 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 3,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
-						'title' => 'desc',
-						'typeofwork' => '',
 					)
 				)
 			),
@@ -2004,6 +2034,38 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
+						'time' => '03:10',
+						'title' => 'desc',
+						'typeofwork' => '',
+						'units' => '1',
+						'datestart' => date('Y-m-d'),
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
+					)
+				)
+			),
+			array('pname-brand', 'pname-brand', 'teamname',
+			'#time 03:10 desc NotExists PSubTask ',
+				array(
+					'status' => 10,
+					'info' => array(
+						'team' => 'teamname',
+						'time' => '03:10',
+						'title' => 'desc',
+						'typeofwork' => '',
+					)
+				)
+			),
+			array('pname-brand', 'pname-brand', 'teamname',
+			'#time 03:10 desc "Joon Moon Yuc" NotExists',
+				array(
+					'status' => 11,
+					'info' => array(
+						'team' => 'teamname',
+						'time' => '03:10',
+						'title' => 'desc',
+						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
 					)
 				)
 			),
@@ -2011,41 +2073,20 @@ class testcbmmActionsbcreatetime extends TestCase {
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'3',
 				array(
-					'status' => 10,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => '',
+						'units' => 3,
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'2020-01-02',
-				array(
-					'status' => 10,
-					'info' => array(
-						'team' => 'teamname',
-						'time' => '03:10',
-						'title' => 'desc',
-						'typeofwork' => '',
-					)
-				)
-			),
-			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Richiamo',
-				array(
-					'status' => 10,
-					'info' => array(
-						'team' => 'teamname',
-						'time' => '03:10',
-						'title' => 'desc',
-						'typeofwork' => '',
-					)
-				)
-			),
-			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Open',
 				array(
 					'status' => 2,
 					'info' => array(
@@ -2053,18 +2094,53 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => '',
+						'datestart' => '2020-01-02',
+						'units' => 1,
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
+					)
+				)
+			),
+			array('pname-brand', 'pname-brand', 'teamname',
+				$cmn.'Richiamo',
+				array(
+					'status' => 1,
+					'info' => array(
+						'team' => 'teamname',
+						'time' => '3h 10m',
+						'title' => 'desc',
+						'typeofwork' => 'Richiamo',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
+					)
+				)
+			),
+			array('pname-brand', 'pname-brand', 'teamname',
+				$cmn.'40%',
+				array(
+					'status' => 2,
+					'info' => array(
+						'team' => 'teamname',
+						'time' => '03:10',
+						'title' => 'desc',
+						'typeofwork' => '',
+						'taskstatus' => '40%',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'TOW',
 				array(
-					'status' => 10,
+					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
@@ -2077,7 +2153,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'datestart' => '2020-01-01',
+						'units' => 3,
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
@@ -2089,36 +2169,50 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'datestart' => '2020-01-01',
+						'units' => 3,
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'3 Richiamo',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'typeofwork' => 'Richiamo',
+						'datestart' => '',
+						'units' => 3,
+						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'Richiamo 3',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'typeofwork' => 'Richiamo',
+						'datestart' => '',
+						'units' => 3,
+						'taskstatus' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'3 Open',
+				$cmn.'3 40%',
 				array(
 					'status' => 2,
 					'info' => array(
@@ -2126,110 +2220,168 @@ class testcbmmActionsbcreatetime extends TestCase {
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => '',
+						'datestart' => '',
+						'units' => 3,
+						'taskstatus' => '40%',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Open 3',
+				$cmn.'40% 3',
 				array(
 					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'datestart' => '',
+						'units' => 3,
+						'taskstatus' => '40%',
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'Richiamo 2020-01-01',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'datestart' => '2020-01-01',
+						'units' => 1,
+						'taskstatus' => '',
+						'typeofwork' => 'Richiamo',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
 				$cmn.'2020-01-01 Richiamo',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'datestart' => '2020-01-01',
+						'units' => 1,
+						'taskstatus' => '',
+						'typeofwork' => 'Richiamo',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Open 2020-01-01',
+				$cmn.'40% 2020-01-01',
 				array(
 					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'datestart' => '2020-01-01',
+						'units' => 1,
+						'taskstatus' => '40%',
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'2020-01-01 Open',
+				$cmn.'2020-01-01 40%',
 				array(
 					'status' => 2,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
+						'datestart' => '2020-01-01',
+						'units' => 1,
+						'taskstatus' => '40%',
 						'typeofwork' => '',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Richiamo Open',
+				$cmn.'Richiamo 40%',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'datestart' => '',
+						'units' => 1,
+						'taskstatus' => '40%',
+						'typeofwork' => 'Richiamo',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'Open Richiamo',
+				$cmn.'40% Richiamo',
 				array(
-					'status' => 2,
+					'status' => 1,
 					'info' => array(
 						'team' => 'teamname',
-						'time' => '03:10',
+						'time' => '3h 10m',
 						'title' => 'desc',
-						'typeofwork' => '',
+						'datestart' => '',
+						'units' => 1,
+						'taskstatus' => '40%',
+						'typeofwork' => 'Richiamo',
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			//////////////// ERRORS
 			array('pname-brand', 'pname-brand', 'teamname',
-				$cmn.'desc 3 202-41-02 Richiamo',
+				$cmn.'202-41-02 Richiamo',
 				array(
-					'status' => 10,
+					'status' => 13,
 					'info' => array(
 						'team' => 'teamname',
 						'time' => '03:10',
 						'title' => 'desc',
 						'typeofwork' => 'Richiamo',
 						'datestart' => '',
-						'units' => 3,
+						'units' => 1,
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
 					)
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				'#time 8:01 desc 3 202-41-02 Richiamo',
+				$cmn.'3 202-41-02 Richiamo',
+				array(
+					'status' => 13,
+					'info' => array(
+						'team' => 'teamname',
+						'time' => '03:10',
+						'title' => 'desc',
+						'typeofwork' => 'Richiamo',
+						'datestart' => date('Y-m-d'),
+						'units' => 3,
+						'projecttask' => 'Joon Moon Yuc',
+						'projectsubtask' => 'PSubTask',
+					)
+				)
+			),
+			array('pname-brand', 'pname-brand', 'teamname',
+				'#time 8:01 desc "Joon Moon Yuc" PSubTask 3 202-41-02 Richiamo',
 				array(
 					'status' => 8,
 					'info' => array(
@@ -2238,7 +2390,7 @@ class testcbmmActionsbcreatetime extends TestCase {
 				)
 			),
 			array('pname-brand', 'pname-brand', 'teamname',
-				'#time a:b5 desc 3 202-41-02 Richiamo',
+				'#time a:b5 desc "Joon Moon Yuc" PSubTask 3 202-41-02 Richiamo',
 				array(
 					'status' => 5,
 					'info' => array(
@@ -2255,13 +2407,18 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 2,
+				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
-					'typeofwork' => '',
-				)
+					'typeofwork' => 'Richiamo',
+					'datestart' => '2020-01-01',
+					'units' => 3,
+					'taskstatus' => '',
+					'projecttask' => 'Joon Moon Yuc',
+					'projectsubtask' => 'PSubTask',
+			)
 			)
 		);
 		$this->subtskPermute(array('u','d','t'), array(), 3, $return, $test);
@@ -2277,6 +2434,11 @@ class testcbmmActionsbcreatetime extends TestCase {
 					'time' => '03:10',
 					'title' => 'desc',
 					'typeofwork' => '',
+					'datestart' => '2020-01-01',
+					'units' => 3,
+					'taskstatus' => '40%',
+					'projecttask' => 'Joon Moon Yuc',
+					'projectsubtask' => 'PSubTask',
 				)
 			)
 		);
@@ -2287,12 +2449,17 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 2,
+				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
-					'typeofwork' => '',
+					'typeofwork' => 'Richiamo',
+					'datestart' => date('Y-m-d'),
+					'units' => 3,
+					'taskstatus' => '40%',
+					'projecttask' => 'Joon Moon Yuc',
+					'projectsubtask' => 'PSubTask',
 				)
 			)
 		);
@@ -2303,12 +2470,17 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 2,
+				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
-					'typeofwork' => '',
+					'typeofwork' => 'Richiamo',
+					'datestart' => '2020-01-01',
+					'units' => 1,
+					'taskstatus' => '40%',
+					'projecttask' => 'Joon Moon Yuc',
+					'projectsubtask' => 'PSubTask',
 				)
 			)
 		);
@@ -2320,12 +2492,17 @@ class testcbmmActionsbcreatetime extends TestCase {
 			'teamname',
 			'',
 			array(
-				'status' => 2,
+				'status' => 1,
 				'info' => array(
 					'team' => 'teamname',
-					'time' => '03:10',
+					'time' => '3h 10m',
 					'title' => 'desc',
-					'typeofwork' => '',
+					'typeofwork' => 'Richiamo',
+					'datestart' => '2020-01-01',
+					'units' => 3,
+					'taskstatus' => '40%',
+					'projecttask' => 'Joon Moon Yuc',
+					'projectsubtask' => 'PSubTask',
 				)
 			)
 		);
@@ -2340,6 +2517,25 @@ class testcbmmActionsbcreatetime extends TestCase {
 	 */
 	public function testprocessSubTask($cname, $cdname, $tname, $text, $expected) {
 		global $adb, $current_user;
+		$rs = $adb->pquery(
+			'select globalvariableid from vtiger_globalvariable inner join vtiger_crmentity on crmid=globalvariableid where deleted=0 and gvname=?',
+			array('CWM_TC_ProjectTask')
+		);
+		if ($rs && $adb->num_rows($rs)>0) {
+			vtws_delete(vtws_getEntityId('GlobalVariable').'x'.$rs->fields['globalvariableid'], $current_user);
+		}
+		$rec =  array(
+			'default_check' => '1',
+			'mandatory' => '0',
+			'blocked' => '0',
+			'module_list' => '',
+			'category' => 'Application',
+			'in_module_list' => '',
+			'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
+			'gvname' => 'CWM_TC_ProjectSubTask',
+			'value' => 1,
+		);
+		vtws_upsert('GlobalVariable', $rec, 'gvname', implode(',', array_keys($rec)), $current_user);
 		$_REQUEST['channel_name'] = $cname;
 		$_REQUEST['chnl_dname'] = $cdname;
 		$_REQUEST['text'] = $text;

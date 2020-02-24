@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updatesChangeLog>
+<changeSet>
+	<author>joebordes</author>
+	<description>Add Timecontrol fields</description>
+	<filename>modules/chatwithme/changesets/addCWM_TCFields.php</filename>
+	<classname>addCWM_TCFields</classname>
+	<systemupdate>true</systemupdate>
+</changeSet>
+</updatesChangeLog>

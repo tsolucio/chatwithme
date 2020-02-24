@@ -59,6 +59,44 @@ function getProjectIDToRelateWith($channel) {
 	return $record;
 }
 
+function getProjectTaskIDToRelateWith($prjid, $ptask) {
+	global $adb;
+	list($wsid, $prjid) = explode('x', $prjid);
+	$rstasks = $adb->pquery(
+		'select projecttaskid
+			from vtiger_projecttask
+			inner join vtiger_crmentity on crmid=projecttaskid
+			inner join vtiger_project on vtiger_project.projectid=vtiger_projecttask.projectid
+			where deleted=0 and vtiger_project.projectid=? and (projecttaskname=? or projecttaskid=?) limit 1',
+		array($prjid, $ptask, $ptask)
+	);
+	if ($rstasks && $adb->num_rows($rstasks)>0) {
+		return vtws_getEntityId('ProjectTask').'x'.$rstasks->fields['projecttaskid'];
+	} else {
+		return '';
+	}
+}
+
+function getProjectSubTaskIDToRelateWith($ptask, $psubtask) {
+	global $adb;
+	if (strpos($ptask, 'x')) {
+		list($wsid, $ptask) = explode('x', $ptask);
+	}
+	$rstasks = $adb->pquery(
+		'select projectsubtaskid
+			from vtiger_projectsubtask
+			inner join vtiger_crmentity on crmid=projectsubtaskid
+			inner join vtiger_projecttask on vtiger_projecttask.projecttaskid=vtiger_projectsubtask.projecttaskid
+			where deleted=0 and projecttaskid=? and projectsubtaskname=? limit 1',
+		array($ptask, $psubtask)
+	);
+	if ($rstasks && $adb->num_rows($rstasks)>0) {
+		return vtws_getEntityId('ProjectSubTask').'x'.$rstasks->fields['projectsubtaskid'];
+	} else {
+		return '';
+	}
+}
+
 function sbProjectTaskExist($projectbrand, $prjtsk) {
 	global $adb;
 	$rstasks = $adb->pquery(
@@ -94,7 +132,7 @@ function sbProjectSubTaskExist($projectbrand, $prjtsk, $prjsubtsk) {
 
 function sbgetPrjSubTaskStatus($status) {
 	global $adb;
-	$rstasks = $adb->pquery('select 1 from vtiger_projectsubtaskstatus where projectsubtaskstatus=?', array($status));
+	$rstasks = $adb->pquery('select 1 from vtiger_projectsubtaskprogress where projectsubtaskprogress=?', array($status));
 	return ($rstasks && $adb->num_rows($rstasks)>0);
 }
 
@@ -111,8 +149,8 @@ function changePrjSubTaskStatus($projectbrand, $prjtsk, $prjsubtsk, $tskstatus) 
 	);
 	if ($rstasks && $adb->num_rows($rstasks)>0) {
 		$element = array(
-			'id' => vtws_getEntityId('ProjectTask').'x'.$rstasks->fields['projecttaskid'],
-			'projecttaskstatus' => $tskstatus,
+			'id' => vtws_getEntityId('ProjectSubTask').'x'.$rstasks->fields['projectsubtaskid'],
+			'projectsubtaskprogress' => $tskstatus,
 		);
 		return vtws_revise($element, $current_user);
 	}
@@ -139,16 +177,17 @@ function changePrjTaskStatus($projectbrand, $prjtsk, $tskstatus) {
 	return false;
 }
 
-function sbgetAllProjectTasks($projectbrandname) {
+function sbgetAllProjectTasks($projectbrandname, $returnname = true) {
 	global $adb;
 	$rs = $adb->pquery(
-		'select projectid
+		"select projectid
 			from vtiger_project
 			inner join vtiger_crmentity on crmid=projectid
-			where deleted=0 and projectname=?',
+			where deleted=0 and projectname=? and projectstatus not in ('Completed','Archived')
+			order by createdtime asc",
 		array($projectbrandname)
 	);
-	if ($rs && $adb->num_rows($rs)==1) {
+	if ($rs && $adb->num_rows($rs)>0) {
 		$projectid = $rs->fields['projectid'];
 	} else {
 		return array();
@@ -163,7 +202,7 @@ function sbgetAllProjectTasks($projectbrandname) {
 	$tasksArray = array();
 	if ($rstasks) {
 		while ($ptsk = $adb->fetch_array($rstasks)) {
-			$tasksArray[] = $ptsk['projecttaskid'].'--'.$ptsk['projecttaskname'];
+			$tasksArray[] = $ptsk[($returnname ? 'projecttaskname' : 'projecttaskid')];
 		}
 	}
 	return $tasksArray;
@@ -250,7 +289,7 @@ function sbgetTypeOfWork($projectbrand, $typeofworkid) {
 	global $adb;
 	$req = getMMRequest();
 	$cn = explode('-', $projectbrand);
-	$projectbrand = $cn[0].'-'.$cn[1];
+	$projectbrand = $cn[0].(isset($cn[1]) ? '-'.$cn[1] : '');
 	$rs = $adb->pquery(
 		'select cbmapid
 			from vtiger_cbmap
@@ -300,8 +339,9 @@ function sbgetTypeOfWork($projectbrand, $typeofworkid) {
 	return false;
 }
 
-function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $team) {
+function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $team, $ptask, $psubtask) {
 	global $current_user, $adb;
+	$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
 	switch ($current_user->date_format) {
 		case 'dd-mm-yyyy':
 			$current_date = date('d-m-Y');
@@ -315,35 +355,32 @@ function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $te
 			break;
 	}
 	$time_end = date('H:i:s');
-	$gvworkTypemode = GlobalVariable::getVariable('CWM_TC_TypeOfWork', 'Map', 'chatwithme', $current_user->id);
-	switch ($gvworkTypemode) {
-		case 'Map':
-			$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
-			$data = array(
-				'id' => vtws_getEntityId('Timecontrol').'x'.$tcid,
-				'date_end' => $current_date,
-				'time_end' => $time_end,
-				'brand' => $brand,
-				'team' => $team,
-				'title' => $title,
-				'relconcept' => $prjtype,
-				'tcunits' => $units,
-				'typeofwork' => $type,
-				'relatedto' => $prjid,
-			);
-			break;
-		case 'ProjectTask':
-			$taskdata = getProjectTaskDataToRelateWith($type);
-			$data = array(
-			);
-			break;
+	$data = array(
+		'id' => vtws_getEntityId('Timecontrol').'x'.$tcid,
+		'date_end' => $current_date,
+		'time_end' => $time_end,
+		'brand' => $brand,
+		'team' => $team,
+		'title' => $title,
+		'relconcept' => $prjtype,
+		'tcunits' => $units,
+		'typeofwork' => $type,
+		'relatedto' => $prjid,
+	);
+	if (!empty($ptask)) {
+		$data['prjtask'] = $ptask;
+	}
+	if (!empty($psubtask)) {
+		$data['prjsubtask'] = $psubtask;
 	}
 	return vtws_revise($data, $current_user);
 }
 
-function stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $team) {
-	global $current_user, $adb, $log;
-	$gvworkTypemode = GlobalVariable::getVariable('CWM_TC_TypeOfWork', 'Map', 'chatwithme', $current_user->id);
+function stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $units, $team, $ptask, $psubtask) {
+	global $current_user, $adb;
+	$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
+	$ptask = getProjectTaskIDToRelateWith($prjid, $ptask);
+	$psubtask = getProjectSubTaskIDToRelateWith($ptask, $psubtask);
 	switch ($current_user->date_format) {
 		case 'dd-mm-yyyy':
 			$current_date = date('d-m-Y', $date);
@@ -371,15 +408,12 @@ function stoptimerDoCreateTC($date, $time, $brand, $prjtype, $title, $type, $uni
 		'title' => $title,
 		'relconcept' => $prjtype,
 		'tcunits' => $units,
-		'assigned_user_id' => $usrwsid = vtws_getEntityId('Users').'x'.$current_user->id,
+		'typeofwork' => $type,
+		'relatedto' => $prjid,
+		'prjtask' => $ptask,
+		'prjsubtask' => $psubtask,
+		'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
 	);
-	if ($gvworkTypemode == 'Map') {
-		$data['relatedto'] = getProjectIDToRelateWith($brand.'-'.$prjtype);
-		$data['typeofwork'] = $type;
-	}
-	/**
-	 * 'date_end' => $current_date, 'time_end' => $time_end, 'totaltime' => $time,
-	 */
 	return vtws_create('Timecontrol', $data, $current_user);
 }
 ?>
