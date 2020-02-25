@@ -85,16 +85,16 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		$this->timeinfo['typeofwork'] = '';
 		// validate project task and project subtask
 		if ($prjsubtsk) {
-			if (!sbProjectTaskExist($req['channel_dname'], $prm[2])) {
+			if (!sbProjectTaskExist($req['channel_dname'], $prm[3])) {
 				$this->time_status = self::STATUS_PRJTASK_NOTFOUND;
 				return true;
 			}
-			$this->timeinfo['projecttask'] = $prm[2];
-			if (!sbProjectSubTaskExist($req['channel_dname'], $prm[2], $prm[3])) {
+			$this->timeinfo['projecttask'] = $prm[3];
+			if (!sbProjectSubTaskExist($req['channel_dname'], $prm[3], $prm[4])) {
 				$this->time_status = self::STATUS_PRJSUBTASK_NOTFOUND;
 				return true;
 			}
-			$this->timeinfo['projectsubtask'] = $prm[3];
+			$this->timeinfo['projectsubtask'] = $prm[4];
 		}
 		if (count($prm)==3+$paramoffset) {
 			$cn = explode('-', $req['channel_dname']);

@@ -30,7 +30,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 	private $stoped_at;
 
 	public function process() {
-		global $adb, $current_user;
+		global $adb;
 		$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
 		$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
 		if ($prjsubtsk && !$prjtsk) {
@@ -73,6 +73,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 						$this->open_timer_status = self::STATUS_MISSINGTYPE;
 						return true;
 					}
+					$typeofworkid = $tcinfo['typeofwork'];
 				} else {
 					$picklistvalue = vtlib_purify($_REQUEST['context']['selected_option']);
 					if ($_REQUEST['pl']=='p') {
@@ -82,6 +83,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 							$this->open_timer_status = self::STATUS_MISSINGTYPE;
 							return true;
 						}
+						$typeofworkid = $tcinfo['typeofwork'];
 					} else {
 						$tcinfo['typeofwork'] = $picklistvalue;
 						$typeofworkid = $picklistvalue;
@@ -93,13 +95,17 @@ class cbmmActionsbsavetime extends chatactionclass {
 					}
 				}
 				$tow = sbgetTypeOfWork($req['channel_dname'], $typeofworkid);
-				$ptaskname = '';
-				if ($prjtsk && (!isset($tcinfo['projecttask']) || $tcinfo['projecttask']=='')) {
+				$projecttask = '';
+				if ($prjtsk && is_numeric($tcinfo['projecttask'])) {
 					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false);
 					$projecttask = $projecttasks[$tcinfo['projecttask']];
 					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], true);
 					$ptaskname = $projecttasks[$tcinfo['projecttask']];
+				} else {
+					$ptaskname = $projecttask = $tcinfo['projecttask'];
 				}
+				$tcinfo['units'] = empty($tcinfo['units']) ? 1 : $tcinfo['units'];
+				$tcinfo['projectsubtask'] = empty($tcinfo['projectsubtask']) ? '' : $tcinfo['projectsubtask'];
 				$result = stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $tow, $units, $tcinfo['team'], $projecttask, $tcinfo['projectsubtask']);
 				$time_array = explode(':', $result['totaltime']);
 				$this->stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
@@ -157,6 +163,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 				}
 			}
 			$tow = sbgetTypeOfWork($req['channel_dname'], $typeofworkid);
+			$projecttask = '';
 			if ($prjtsk) {
 				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false);
 				$projecttask = $projecttasks[$tcinfo['projecttask']];

@@ -87,8 +87,8 @@ function getProjectSubTaskIDToRelateWith($ptask, $psubtask) {
 			from vtiger_projectsubtask
 			inner join vtiger_crmentity on crmid=projectsubtaskid
 			inner join vtiger_projecttask on vtiger_projecttask.projecttaskid=vtiger_projectsubtask.projecttaskid
-			where deleted=0 and projecttaskid=? and projectsubtaskname=? limit 1',
-		array($ptask, $psubtask)
+			where deleted=0 and vtiger_projecttask.projecttaskid=? and (projectsubtaskname=? or projectsubtaskid=?) limit 1',
+		array($ptask, $psubtask, $psubtask)
 	);
 	if ($rstasks && $adb->num_rows($rstasks)>0) {
 		return vtws_getEntityId('ProjectSubTask').'x'.$rstasks->fields['projectsubtaskid'];
@@ -340,8 +340,10 @@ function sbgetTypeOfWork($projectbrand, $typeofworkid) {
 }
 
 function stoptimerDoUpdateTC($tcid, $brand, $prjtype, $title, $type, $units, $team, $ptask, $psubtask) {
-	global $current_user, $adb;
+	global $current_user;
 	$prjid = getProjectIDToRelateWith($brand.'-'.$prjtype);
+	$ptask = getProjectTaskIDToRelateWith($prjid, $ptask);
+	$psubtask = getProjectSubTaskIDToRelateWith($ptask, $psubtask);
 	switch ($current_user->date_format) {
 		case 'dd-mm-yyyy':
 			$current_date = date('d-m-Y');
