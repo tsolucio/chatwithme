@@ -1,12 +1,7 @@
-<table width="100%" cellpadding="2" cellspacing="0" border="0" class="detailview_wrapper_table">
-	<tr>
-		<td class="detailview_wrapper_cell">
-			{include file='Buttons_List.tpl'}
-		</td>
-	</tr>
-</table>
+{include file='Buttons_List.tpl'}
 <br>
 {if $ISADMIN}
+<article class="slds-card slds-m-left_x-large slds-m-right_x-large slds-m-bottom_x-large slds-p-around_small">
 <form role="form" style="margin:0 100px;" method="post">
 <input type="hidden" name="module" value="chatwithme">
 <input type="hidden" name="action" value="ListView">
@@ -64,4 +59,5 @@
 	<button type="submit" class="slds-button slds-button_brand">{'LBL_SAVE_BUTTON_LABEL'|@getTranslatedString:$MODULE}</button>
 </div>
 </form>
+</article>
 {/if}
