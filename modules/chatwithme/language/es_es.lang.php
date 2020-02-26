@@ -117,8 +117,8 @@ $mod_strings = array(
 	'taskforproject_command' => '**tareadeltiempo** {ID} asocia la tarea con el registro de tiempo',
 	'update_command' => '**actualiza {crmid} {campo}={valor}**: Actualiza un campo de un registro',
 	'sbcreatetime_command' => '**time hh:mm "descripción tarea" {unidades} {yyyy-mm-dd} {"tipo"}**: creará un nuevo registro de tiempo',
-	'sbcreatetime_commandTsk' => '**time hh:mm "task description" {projecttask} {units} {yyyy-mm-dd} {"type"} {"new status"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
-	'sbcreatetime_commandTskSubTsk' => '**time hh:mm "task description" projecttask projectsubtask {units} {yyyy-mm-dd} {"type"} {"new status"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
+	'sbcreatetime_commandTsk' => '**time hh:mm "task description" {projecttask} {unidades} {yyyy-mm-dd} {"tipo"} {"nuevo estado"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
+	'sbcreatetime_commandTskSubTsk' => '**time hh:mm "task description" projecttask projectsubtask {unidades} {yyyy-mm-dd} {"tipo"} {"nuevo estado"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
 	'video_command' => '**video {nombre}**: compartirá un enlace a una sala de video chat. Si no se proporciona ningún nombre, se utilizará el nombre del canal',
 );
 ?>
