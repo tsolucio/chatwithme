@@ -32,7 +32,7 @@ class cbmmActionallprojects extends chatactionclass {
 		$project_status = 'completed';
 		$token = vtlib_purify($_REQUEST['token']);
 		$res = $adb->pquery('select * from vtiger_project where projectstatus!=?', array($project_status));
-		$baseurl = $site_URL.'/notifications.php?type=CWM&text=project&token='.$token.'&user_id='.$current_user->column_fields['mmuserid'];
+		$baseurl = trim($site_URL, '/').'/notifications.php?type=CWM&text=project&token='.$token.'&user_id='.$current_user->column_fields['mmuserid'];
 		$result = $adb->pquery('select * from vtiger_timecontrol where title=?', array($proj_title));
 		$time_array = explode(':', $result->fields['totaltime']);
 		$stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';

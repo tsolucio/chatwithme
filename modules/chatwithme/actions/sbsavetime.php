@@ -215,7 +215,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
-			$baseurl = $site_URL.'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
+			$baseurl = trim($site_URL, '/').'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
 			$plvals = sbgetAllTypeOfWork($req['channel_dname']);
 			asort($plvals);
 			foreach ($plvals as $plid => $value) {
@@ -227,7 +227,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 				array_push($fieldsArray, $action_data);
 			}
 			$msglen = 200+strlen(json_encode($fieldsArray));
-			if ($msglen>6500) {
+			if ($msglen>6460) {
 				$fieldsArray = array();
 				foreach ($plvals as $plid => $value) {
 					$opdata = array(
@@ -247,6 +247,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 			}
 			$ret = array(
 				'response_type' => 'in_channel',
+				'ephemeral_text' => getTranslatedString('LBL_SELECT_BUTTON_LABEL'),
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
 					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStopedTOW', 'chatwithme'),
@@ -266,7 +267,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
-			$baseurl = $site_URL.'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
+			$baseurl = trim($site_URL, '/').'/notifications.php?type=CWM&text=sbsavetime&token='.$req['token'].'&tc='.$tcinfoid.'&channel_id='.$chid;
 			$plvals = sbgetAllProjectTasks($req['channel_dname']);
 			asort($plvals);
 			foreach ($plvals as $plid => $value) {
@@ -278,7 +279,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 				array_push($fieldsArray, $action_data);
 			}
 			$msglen = 200+strlen(json_encode($fieldsArray));
-			if ($msglen>6500) {
+			if ($msglen>6460) {
 				$fieldsArray = array();
 				foreach ($plvals as $plid => $value) {
 					$opdata = array(
@@ -298,6 +299,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 			}
 			$ret = array(
 				'response_type' => 'in_channel',
+				'ephemeral_text' => getTranslatedString('LBL_SELECT_BUTTON_LABEL'),
 				'attachments' => array(array(
 					'color' => getMMMsgColor('yellow'),
 					'title' => getTranslatedString('TimerStoped1', 'chatwithme').getTranslatedString('TimerStopedPRT', 'chatwithme'),
