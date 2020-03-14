@@ -51,7 +51,14 @@ function getProjectIDToRelateWith($channel) {
 			'brand' => $brand,
 			'assigned_user_id' => $usrwsid,
 		);
-		$prj = vtws_create('Project', $rec, $current_user);
+		try {
+			$prj = vtws_create('Project', $rec, $current_user);
+		} catch (Exception $ex) {
+			$holduser = $current_user;
+			$current_user = Users::getActiveAdminUser();
+			$prj = vtws_create('Project', $rec, $current_user);
+			$current_user = $holduser;
+		}
 		$record = $prj['id'];
 	} else {
 		$record = vtws_getEntityId('Project').'x'.$rs->fields['projectid'];
