@@ -163,7 +163,7 @@ class cbmmActionsbsavetime extends chatactionclass {
 				}
 			}
 			$tow = sbgetTypeOfWork($req['channel_dname'], $typeofworkid);
-			$projecttask = '';
+			$projecttask = $ptaskname = '';
 			if ($prjtsk) {
 				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false);
 				$projecttask = $projecttasks[$tcinfo['projecttask']];
