@@ -39,9 +39,9 @@ class VTSendMessage2MMTask extends VTTask {
 		$textdata = array(
 			'response_type' => 'in_channel',
 		);
-		if (isset($this->WorkflowContext['CWMWorkflowChannelName'])) {
-			$textdata['channel'] = $this->WorkflowContext['CWMWorkflowChannelName'];
-			$textdata['channel_id'] = $this->WorkflowContext['CWMWorkflowChannelID'];
+		if (isset($entity->WorkflowContext['CWMWorkflowChannelName'])) {
+			$textdata['channel'] = $entity->WorkflowContext['CWMWorkflowChannelName'];
+			$textdata['channel_id'] = $entity->WorkflowContext['CWMWorkflowChannelID'];
 		}
 		if (empty($title)) {
 			$textdata['text'] = strip_tags($body);
