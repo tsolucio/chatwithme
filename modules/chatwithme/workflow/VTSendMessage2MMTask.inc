@@ -25,6 +25,8 @@ class VTSendMessage2MMTask extends VTTask {
 		$usrid = explode('x', $data['assigned_user_id']);
 		$focus = new Users();
 		$focus->retrieve_entity_info($usrid[1], 'Users');
+		$mmuidrs = $adb->pquery('select mmuserid from vtiger_users where id=?', array($focus->id));
+		$mmuserid = $adb->query_result($mmuidrs, 0, 'mmuserid');
 		if (empty($configmm)) {
 			$configmm = getMMSettings();
 		}
@@ -38,6 +40,7 @@ class VTSendMessage2MMTask extends VTTask {
 		$crmid = explode('x', $ws_id);
 		$textdata = array(
 			'response_type' => 'in_channel',
+			'user_id' => $mmuserid,
 		);
 		if (isset($entity->WorkflowContext['CWMWorkflowChannelName'])) {
 			$textdata['channel'] = $entity->WorkflowContext['CWMWorkflowChannelName'];
@@ -46,18 +49,16 @@ class VTSendMessage2MMTask extends VTTask {
 		if (empty($title)) {
 			$textdata['text'] = strip_tags($body);
 		} else {
-			$textdata['attachments'] = array(
+			$attachments = array(
 				'title' => $title,
 				'text' => strip_tags($body),
 			);
 			if (!empty($this->messageColor)) {
-				$textdata['attachments'][0]['color'] = getMMMsgColor($this->messageColor);
+				$attachments['color'] = getMMMsgColor($this->messageColor);
 			}
-			$mmuidrs = $adb->pquery('select mmuserid from vtiger_users where id=?', array($focus->id));
-			$mmuserid = $adb->query_result($mmuidrs, 0, 'mmuserid');
 			$baseurl = $site_URL.'/notifications.php?type=CWM&token='.$configmm['token'][0].'&record='.$crmid[1].'&user_id='.$mmuserid;
 			if (!empty($this->button_title1) && !empty($this->button_url1)) {
-				$textdata['attachments'][0]['actions'] = array(
+				$attachments['actions'] = array(
 					array(
 						'name' => getTranslatedString($this->button_title1, 'chatwithme'),
 						'integration'=> array(
@@ -75,7 +76,7 @@ class VTSendMessage2MMTask extends VTTask {
 						)
 					)
 				);
-				$textdata['attachments'][0]['actions'] = array_merge($textdata['attachments'][0]['actions'], $button2);
+				$attachments['actions'] = array_merge($attachments['actions'], $button2);
 			}
 			if (!empty($this->button_title3) && !empty($this->button_url3)) {
 				$button3 = array(
@@ -86,8 +87,9 @@ class VTSendMessage2MMTask extends VTTask {
 						)
 					)
 				);
-				$textdata['attachments'][0]['actions'] = array_merge($textdata['attachments'][0]['actions'], $button3);
+				$attachments['actions'] = array_merge($attachments['actions'], $button3);
 			}
+			$textdata['attachments'] = array($attachments);
 		}
 		$logbg->debug('Mattermost msg sent:');
 		$logbg->debug($textdata);
