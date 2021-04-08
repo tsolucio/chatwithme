@@ -184,7 +184,7 @@ function changePrjTaskStatus($projectbrand, $prjtsk, $tskstatus) {
 	return false;
 }
 
-function sbgetAllProjectTasks($projectbrandname, $returnname = true) {
+function sbgetAllProjectTasks($projectbrandname, $returnname = true, $indexname = false) {
 	global $adb;
 	$rs = $adb->pquery(
 		"select projectid
@@ -209,7 +209,7 @@ function sbgetAllProjectTasks($projectbrandname, $returnname = true) {
 	$tasksArray = array();
 	if ($rstasks) {
 		while ($ptsk = $adb->fetch_array($rstasks)) {
-			$tasksArray[] = $ptsk[($returnname ? 'projecttaskname' : 'projecttaskid')];
+			$tasksArray[$ptsk[($indexname ? 'projecttaskname' : 'projecttaskid')]] = $ptsk[($returnname ? 'projecttaskname' : 'projecttaskid')];
 		}
 	}
 	return $tasksArray;

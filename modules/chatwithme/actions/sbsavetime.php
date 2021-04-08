@@ -97,9 +97,9 @@ class cbmmActionsbsavetime extends chatactionclass {
 				$tow = sbgetTypeOfWork($req['channel_dname'], $typeofworkid);
 				$projecttask = '';
 				if ($prjtsk && is_numeric($tcinfo['projecttask'])) {
-					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false);
+					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false, true);
 					$projecttask = $projecttasks[$tcinfo['projecttask']];
-					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], true);
+					$projecttasks = sbgetAllProjectTasks($req['channel_dname'], true, true);
 					$ptaskname = $projecttasks[$tcinfo['projecttask']];
 				} else {
 					$ptaskname = $projecttask = $tcinfo['projecttask'];
@@ -165,9 +165,9 @@ class cbmmActionsbsavetime extends chatactionclass {
 			$tow = sbgetTypeOfWork($req['channel_dname'], $typeofworkid);
 			$projecttask = $ptaskname = '';
 			if ($prjtsk) {
-				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false);
+				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], false, true);
 				$projecttask = $projecttasks[$tcinfo['projecttask']];
-				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], true);
+				$projecttasks = sbgetAllProjectTasks($req['channel_dname'], true, true);
 				$ptaskname = $projecttasks[$tcinfo['projecttask']];
 			}
 			$tcinfo['units'] = empty($tcinfo['units']) ? 1 : $tcinfo['units'];
