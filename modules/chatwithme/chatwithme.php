@@ -11,6 +11,8 @@ require_once 'data/CRMEntity.php';
 require_once 'data/Tracker.php';
 
 class chatwithme extends CRMEntity {
+	public $tab_name = array();
+	public $tab_name_index = array();
 	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'sync');
 
 	/**
