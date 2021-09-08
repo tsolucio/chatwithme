@@ -13,6 +13,7 @@
 * permissions and limitations under the License. You may obtain a copy of the License
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
+require_once 'vtlib/Vtiger/Utils.php';
 require_once 'include/Webservices/Revise.php';
 require_once 'include/Webservices/Retrieve.php';
 require_once 'include/Webservices/Create.php';
@@ -86,6 +87,9 @@ function getProjectTaskIDToRelateWith($prjid, $ptask) {
 
 function getProjectSubTaskIDToRelateWith($ptask, $psubtask) {
 	global $adb;
+	if (!Vtiger_Utils::CheckTable('vtiger_projectsubtask')) {
+		return '';
+	}
 	if (strpos($ptask, 'x')) {
 		list($wsid, $ptask) = explode('x', $ptask);
 	}
