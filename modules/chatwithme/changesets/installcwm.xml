@@ -1,0 +1,9 @@
+<updatesChangeLog>
+	<changeSet>
+		<author>joebordes</author>
+		<description>Install Chat With Me extension</description>
+		<filename>modules/chatwithme/installcwm.php</filename>
+		<classname>installcwm</classname>
+		<systemupdate>true</systemupdate>
+	</changeSet>
+</updatesChangeLog>
