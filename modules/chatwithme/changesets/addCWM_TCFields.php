@@ -37,6 +37,18 @@ class addCWM_TCFields extends cbupdaterWorker {
 						),
 					)
 				),
+				'Users' => array(
+					'LBL_MORE_INFORMATION' => array(
+						'mmteam' => array(
+							'columntype'=>'varchar(200)',
+							'typeofdata'=>'V~O',
+							'uitype'=>'1',
+							'displaytype'=>'1',
+							'label'=>'MM Team',
+							'massedit' => 0,
+						),
+					),
+				),
 				'Timecontrol' => array(
 					'LBL_TIMECONTROL_INFORMATION' => array(
 						'typeofwork' => array(
