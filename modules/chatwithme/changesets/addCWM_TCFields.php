@@ -35,6 +35,14 @@ class addCWM_TCFields extends cbupdaterWorker {
 							'massedit' => 0,
 							'vals' => array('--None--'),
 						),
+						'teamname' => array(
+							'columntype'=>'varchar(200)',
+							'typeofdata'=>'V~O',
+							'uitype'=>'1',
+							'displaytype'=>'1',
+							'label'=>'Team',
+							'massedit' => 1,
+						),
 					)
 				),
 				'Users' => array(
