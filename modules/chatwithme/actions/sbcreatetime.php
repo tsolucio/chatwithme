@@ -64,6 +64,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 		}
 		$req = getMMRequest();
 		$this->timeinfo['team'] = $req['team_dname'];
+		$this->timeinfo['user_id'] = $req['user_id'];
 		$prm = parseMMMsgWithQuotes($req['text']);
 		if (count($prm)<(3+$paramoffset)) {
 			$this->time_status = self::STATUS_BADFORMAT;

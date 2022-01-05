@@ -24,6 +24,13 @@ cbwProcessPHPRawInput($input);
 
 if (isMMActive() && isset($_REQUEST) && array_key_exists('text', $_REQUEST) && array_key_exists('token', $_REQUEST) && in_array($_REQUEST['token'], $configmm['token'])) {
 	$usr = new Users();
+	if (empty($_REQUEST['user_id']) && !empty($_REQUEST['tc'])) {
+		$tcinfo = coreBOS_Settings::getSetting($_REQUEST['tc'], '{}');
+		$tcinfo = json_decode($tcinfo, true);
+		if (!empty($tcinfo) && json_last_error() == JSON_ERROR_NONE && !empty($tcinfo['user_id'])) {
+			$_REQUEST['user_id'] = $tcinfo['user_id'];
+		}
+	}
 	$usrrs = $adb->pquery('select id from vtiger_users where mmuserid=? and status=? limit 1', array(vtlib_purify($_REQUEST['user_id']), 'Active'));
 	if ($usrrs && $adb->num_rows($usrrs)==1) {
 		$current_user = new Users();

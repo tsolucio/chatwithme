@@ -79,6 +79,7 @@ class cbmmActionstoptimer extends chatactionclass {
 		$this->recid  = $tcid;
 		$req = getMMRequest();
 		$this->timeinfo['team'] = $req['team_dname'];
+		$this->timeinfo['user_id'] = $req['user_id'];
 		$prm = parseMMMsgWithQuotes($req['text']);
 		if (count($prm)<2) {
 			$this->open_timer_status = self::STATUS_NO_DESCRIPTION;
@@ -403,6 +404,7 @@ class cbmmActionstoptimer extends chatactionclass {
 			$prjtype = $cn[1];
 			$tcinfoid = uniqid('CTC');
 			$this->timeinfo['team']  = $req['team_dname'];
+			$this->timeinfo['user_id'] = $req['user_id'];
 			$this->timeinfo['units'] = $this->units;
 			$this->timeinfo['title'] = $this->title;
 			$this->timeinfo['recid'] = $this->recid;
@@ -461,6 +463,7 @@ class cbmmActionstoptimer extends chatactionclass {
 			$prjtype = $cn[1];
 			$tcinfoid = uniqid('CTC');
 			$this->timeinfo['team']  = $req['team_dname'];
+			$this->timeinfo['user_id'] = $req['user_id'];
 			$this->timeinfo['units'] = $this->units;
 			$this->timeinfo['title'] = $this->title;
 			$this->timeinfo['recid'] = $this->recid;
