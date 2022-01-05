@@ -11,19 +11,17 @@ require_once 'data/CRMEntity.php';
 require_once 'data/Tracker.php';
 
 class chatwithme extends CRMEntity {
-	public $tab_name = array();
-	public $tab_name_index = array();
 	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'sync');
 
 	/**
 	 * Invoked when special actions are performed on the module.
-	 * @param String Module name
-	 * @param String Event Type (module.postinstall, module.disabled, module.enabled, module.preuninstall)
+	 * @param string Module name
+	 * @param string Event Type (module.postinstall, module.disabled, module.enabled, module.preuninstall)
 	 */
 	public function vtlib_handler($modulename, $event_type) {
 		global $adb;
 		if ($event_type == 'module.postinstall') {
-			// TODO Handle post installation actions
+			// Handle post installation actions
 			$adb->query("INSERT INTO vtiger_notificationdrivers (type,path,functionname) VALUES ('CWM','modules/chatwithme/cwmapi.php','__cwmDoNothing')");
 			include_once 'vtlib/Vtiger/Module.php';
 			include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
@@ -98,18 +96,18 @@ class chatwithme extends CRMEntity {
 				$gvfield->setPicklistValues(array('CWM_TC_ProjectTask', 'CWM_TC_ProjectSubTask'));
 			}
 		} elseif ($event_type == 'module.disabled') {
-			// TODO Handle actions when this module is disabled.
+			// Handle actions when this module is disabled.
 			$adb->query("DELETE FROM vtiger_notificationdrivers WHERE type='CWM' and path='modules/chatwithme/cwmapi.php' and functionname='__cwmDoNothing'");
 		} elseif ($event_type == 'module.enabled') {
-			// TODO Handle actions when this module is enabled.
+			// Handle actions when this module is enabled.
 			$adb->query("INSERT INTO vtiger_notificationdrivers (type,path,functionname) VALUES ('CWM','modules/chatwithme/cwmapi.php','__cwmDoNothing')");
 		} elseif ($event_type == 'module.preuninstall') {
-			// TODO Handle actions when this module is about to be deleted.
+			// Handle actions when this module is about to be deleted.
 			$adb->query("DELETE FROM vtiger_notificationdrivers WHERE type='CWM' and path='modules/chatwithme/cwmapi.php' and functionname='__cwmDoNothing'");
 		} elseif ($event_type == 'module.preupdate') {
-			// TODO Handle actions before this module is updated.
+			// Handle actions before this module is updated.
 		} elseif ($event_type == 'module.postupdate') {
-			// TODO Handle actions after this module is updated.
+			// Handle actions after this module is updated.
 		}
 	}
 }
