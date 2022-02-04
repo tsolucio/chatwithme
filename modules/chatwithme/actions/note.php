@@ -40,7 +40,7 @@ class cbmmActionnote extends chatactionclass {
 						if ($res && $adb->num_rows($res)>0) {
 							$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 						}
-					} 
+					}
 					if ($module2) {
 						$res = $adb->pquery('select contactid from vtiger_contactdetails where email=?', array($email));
 						if ($res && $adb->num_rows($res)>0) {
@@ -65,7 +65,7 @@ class cbmmActionnote extends chatactionclass {
 						if ($res && $adb->num_rows($res)>0) {
 							$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 						}
-					} 
+					}
 					if ($module2) {
 						$field2 = Vtiger_Field::getInstance('gtalkid', $module2);
 						if ($field2) {
@@ -88,7 +88,7 @@ class cbmmActionnote extends chatactionclass {
 					if ($res && $adb->num_rows($res)>0) {
 						$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 					}
-				} 
+				}
 				if ($module2) {
 					$res = $adb->pquery('select contactid from vtiger_contactdetails where firstname=? and lastname=?', array($fname, $lname));
 					if ($res && $adb->num_rows($res)>0) {

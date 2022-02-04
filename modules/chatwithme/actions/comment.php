@@ -30,7 +30,7 @@ class cbmmActioncomment extends chatactionclass {
 		global $current_user;
 		$req = getMMRequest();
 		$prm = parseMMMsgWithQuotes($req['text']);
-        if (isset($prm[1]) && isset($prm[2])) {
+		if (isset($prm[1]) && isset($prm[2])) {
 			if (!isRecordExists($prm[1])) {
 				$this->status = self::RECORD_NOT_FOUND;
 			} else {
