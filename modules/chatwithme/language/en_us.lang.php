@@ -126,7 +126,7 @@ $mod_strings = array(
 	'sbcreatetime_commandTsk' => '**time hh:mm "task description" {projecttask} {units} {yyyy-mm-dd} {"type"} {"new status"}**: will create a new time record related to a project task and a type of work, optionally changing the status',
 	'sbcreatetime_commandTskSubTsk' => '**time hh:mm "task description" projecttask projectsubtask {units} {yyyy-mm-dd} {"type"} {"new status"}**: will create a new time record related to a project subtask and a type of work, optionally changing the status',
 	'video_command' => '**video {name}**: will share a link to a video chat room. If no name is given the channel name will be used',
-	'note_command' => '**note {user/who} [1-5] "text/comment"**: It will create a new record in cbSurveyDone module that will take the user selected and the note written in the command',
+	'note_command' => '**note {user/who} [1-5] "text/comment"**: It will create a new record in Survey Done module that will take the user selected and the note written in the command',
 	'comment_command' => '**comment {record} "text/comment"**: It will update record by add a comment for that module',
 );
 ?>

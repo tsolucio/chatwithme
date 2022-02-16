@@ -95,6 +95,12 @@ $mod_strings = array(
 	'TypeProject' => 'Indica la tarea en la que has trabajado, sintaxis _```#tareadeltiempo``` ``{ID}``_',
 	'RecordUpdated' => ':tada: Registro actualizado con éxito!',
 	'RecordNotUpdated' => '¡Actualización de registro fallida!',
+	'RecordNotFound' => 'Registro no encontrado',
+	'NewRecordAdded' => 'Registro añadido correctamente',
+	'NewRecordNotAdded' => 'Error creando registro',
+	'CommentAdded' => 'Comentario añadido correctamente',
+	'CommentNotAdded' => 'Error creando comentario',
+	'UserNotFound' => 'This user not found here',
 	'InvalidField' => ':x: Nombre de campo inválido',
 	'MMUserTEAMError' => 'Equipo Mattermost (MM Team) está vacío. Por favor introduce un equipo válido.',
 	'JoinMeeting' => 'Unirte a la reunión',
@@ -120,5 +126,7 @@ $mod_strings = array(
 	'sbcreatetime_commandTsk' => '**time hh:mm "task description" {projecttask} {unidades} {yyyy-mm-dd} {"tipo"} {"nuevo estado"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
 	'sbcreatetime_commandTskSubTsk' => '**time hh:mm "task description" projecttask projectsubtask {unidades} {yyyy-mm-dd} {"tipo"} {"nuevo estado"}**: creará un nuevo registro de tiempo relacionado con la tarea y el tipo de trabajo, opcionalmente cambiando el estado',
 	'video_command' => '**video {nombre}**: compartirá un enlace a una sala de video chat. Si no se proporciona ningún nombre, se utilizará el nombre del canal',
+	'note_command' => '**nota {usuario} [1-5] "texto/comentario"**: Creará un nuevo registro en el módulo Encuestas que tomará el usuario seleccionado y la nota escrita en el comando',
+	'comment_command' => '**comentario {registro} "texto/comentario"**: Actualizará el registro agregando un comentario para ese módulo',
 );
 ?>
