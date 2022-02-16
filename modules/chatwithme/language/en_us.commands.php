@@ -28,6 +28,8 @@ $cwmcommands = array(
 	'sbsavetime' => 'sbsavetime',
 	'time' => 'sbcreatetime',
 	'video' => 'video',
+	'note' => 'note',
+	'comment' => 'comment',
 );
 
 /*
