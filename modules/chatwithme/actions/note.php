@@ -31,6 +31,7 @@ class cbmmActionnote extends chatactionclass {
 		$prm = parseMMMsgWithQuotes($req['text']);
 		if (isset($prm[1]) && isset($prm[2])) {
 			$module = Vtiger_Module::getInstance('cbEmployee');
+			$module2 = Vtiger_Module::getInstance('Contacts');
 			$related_to = '';
 			if (preg_match('/@/', $prm[1])) {
 				$nameEmail = explode('@', $prm[1]);
@@ -41,7 +42,8 @@ class cbmmActionnote extends chatactionclass {
 						if ($res && $adb->num_rows($res)>0) {
 							$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 						}
-					} else {
+					}
+					if ($related_to == '' && $module2) {
 						$res = $adb->pquery('select contactid from vtiger_contactdetails where email=?', array($email));
 						if ($res && $adb->num_rows($res)>0) {
 							$related_to = $adb->query_result($res, 0, 'contactid');
@@ -65,7 +67,8 @@ class cbmmActionnote extends chatactionclass {
 						if ($res && $adb->num_rows($res)>0) {
 							$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 						}
-					} else {
+					}
+					if ($related_to == '' && $module2) {
 						$field2 = Vtiger_Field::getInstance('gtalkid', $module2);
 						if ($field2) {
 							$res = $adb->pquery('select contactid from vtiger_contactdetails where gtalkid=?', array($gtalkid));
@@ -87,7 +90,8 @@ class cbmmActionnote extends chatactionclass {
 					if ($res && $adb->num_rows($res)>0) {
 						$related_to = $adb->query_result($res, 0, 'cbemployeeid');
 					}
-				} else {
+				}
+				if ($related_to == '' && $module2) {
 					$res = $adb->pquery('select contactid from vtiger_contactdetails where firstname=? and lastname=?', array($fname, $lname));
 					if ($res && $adb->num_rows($res)>0) {
 						$related_to = $adb->query_result($res, 0, 'contactid');
