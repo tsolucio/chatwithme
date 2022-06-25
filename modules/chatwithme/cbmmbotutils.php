@@ -43,6 +43,7 @@ function sendMMMsg($response, $echoResponse, $addDefault = true) {
 	} elseif (isset($_REQUEST['chnl_id']) && !isset($response['channel_id'])) {
 		$response['channel_id'] = $_REQUEST['chnl_id'];
 	}
+	$response['token'] = $configmm['token'];
 	$response = array_merge($default, $response);
 	if ($echoResponse) {
 		sendMMResponse($response);

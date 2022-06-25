@@ -27,6 +27,8 @@ $cwmcommands = array(
 	'tiempoinvertido' => 'timespent',
 	'tiempo' => 'sbcreatetime',
 	'video' => 'video',
+	'note' => 'nota',
+	'comment' => 'comentario',
 );
 
 /*
