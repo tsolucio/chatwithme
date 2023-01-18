@@ -11,9 +11,16 @@ require_once 'data/CRMEntity.php';
 require_once 'data/Tracker.php';
 
 class chatwithme extends CRMEntity {
+	public $table_name = 'vtiger_MODULE_NAME_LOWERCASE';
+	public $table_index= 'MODULE_NAME_LOWERCASEid';
+	public $column_fields = array();
+
+	/** Indicator if this is a custom module or standard module */
+	public $IsCustomModule = true;
+	public $HasDirectImageField = false;
+	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'sync');
 	public $tab_name = array();
 	public $tab_name_index = array();
-	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'sync');
 
 	/**
 	 * Invoked when special actions are performed on the module.
