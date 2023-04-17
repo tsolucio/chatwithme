@@ -359,6 +359,9 @@ class cbmmActionstoptimer extends chatactionclass {
 
 	public function getResponse() {
 		global $site_URL;
+		if (empty($this->open_timer_status)) {
+			$this->open_timer_status = $this->time_status;
+		}
 		if ($this->open_timer_status == self::STATUS_BADFORMAT) {
 			$helpcommand = substr($this->getHelp(), 3);
 			$ret = array(
