@@ -21,6 +21,10 @@ class cbmmActionvideo extends chatactionclass {
 		return ' - '.getTranslatedString('video_command', 'chatwithme');
 	}
 
+	public function echoResponse() {
+		return true;
+	}
+
 	public function process() {
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
