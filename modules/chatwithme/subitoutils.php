@@ -23,10 +23,13 @@ require_once 'modules/cbMap/processmap/processMap.php';
 function getProjectIDToRelateWith($channel) {
 	global $adb, $current_user;
 	list($brand, $prjtype) = explode('-', $channel);
-	$qg = new QueryGenerator('Project', $current_user);
+	$qg = new QueryGenerator('Project', Users::getActiveAdminUser());
 	$qg->setFields(array('id'));
-	$qg->addCondition('projecttype', $prjtype, 'e', $qg::$AND);
-	$qg->addCondition('brand', $brand, 'e', $qg::$AND);
+	$qg->startGroup();
+	$qg->addCondition('projectname', $prjtype, 'e');
+	$qg->addCondition('projecttype', $prjtype, 'e', $qg::$OR);
+	$qg->endGroup();
+	//$qg->addCondition('brand', $brand, 'e', $qg::$AND);
 	$qry = $qg->getQuery();
 	$rs = $adb->query($qry);
 	if ($adb->num_rows($rs)==0) {
