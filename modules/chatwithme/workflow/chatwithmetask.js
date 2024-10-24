@@ -8,19 +8,19 @@
  ********************************************************************************/
 
 function cbCWMTask($) {
-	var vtinst = new VtigerWebservices('webservice.php');
-	var accessibleModulesInfo = null;
-	var cbGroups = null;
-	var map = fn.map;
-	var dict = fn.dict;
-	var filter = fn.filter;
-	var reduceR = fn.reduceR;
-	var parallelExecuter = fn.parallelExecuter;
-	var contains = fn.contains;
-	var concat = fn.concat;
+	let vtinst = new VtigerWebservices('webservice.php');
+	let accessibleModulesInfo = null;
+	let cbGroups = null;
+	let map = fn.map;
+	let dict = fn.dict;
+	let filter = fn.filter;
+	let reduceR = fn.reduceR;
+	let parallelExecuter = fn.parallelExecuter;
+	let contains = fn.contains;
+	let concat = fn.concat;
 
 	function diff(reflist, list) {
-		var out = [];
+		let out = [];
 		$.each(list, function (i, v) {
 			if (contains(reflist, v)) {
 				out.push(v);
@@ -50,13 +50,13 @@ function cbCWMTask($) {
 		//http://alexking.org/blog/2003/06/02/inserting-at-the-cursor-using-javascript
 		if (document.selection) {
 			element.focus();
-			var sel = document.selection.createRange();
+			const sel = document.selection.createRange();
 			sel.text = value;
 			element.focus();
 		} else if (element.selectionStart || element.selectionStart == '0') {
-			var startPos = element.selectionStart;
-			var endPos = element.selectionEnd;
-			var scrollTop = element.scrollTop;
+			let startPos = element.selectionStart;
+			let endPos = element.selectionEnd;
+			let scrollTop = element.scrollTop;
 			element.value = element.value.substring(0, startPos) + value + element.value.substring(endPos, element.value.length);
 			element.focus();
 			element.selectionStart = startPos + value.length;
@@ -68,13 +68,11 @@ function cbCWMTask($) {
 		}
 	}
 
-	//Convert user type into reference for consistency in describe objects
-	//This is done inplace
+	// Convert user type into reference for consistency in describe objects
+	// This is done in place
 	function referencify(desc) {
-		var fields = desc['fields'];
-		for (var i=0; i<fields.length; i++) {
-			var field = fields[i];
-			var type = field['type'];
+		for (const element of desc['fields']) {
+			let type = element['type'];
 			if (type['name']=='owner') {
 				type['name']='reference';
 				type['refersTo']=['Users'];
@@ -83,26 +81,25 @@ function cbCWMTask($) {
 		return desc;
 	}
 
-	//Get an array containing the the description of a module and all modules
-	//refered to by it. This is passed to callback.
+	// Return an array containing the description of a module and all modules reffered by it. This is passed to callback.
 	function getDescribeObjects(accessibleModules, moduleName, callback) {
 		vtinst.describeObject(moduleName, handleError(function (result) {
-			var parent = referencify(result);
-			var fields = parent['fields'];
-			var referenceFields = filter(
+			let parent = referencify(result);
+			let fields = parent['fields'];
+			let referenceFields = filter(
 				function (e) {
 					return e['type']['name']=='reference';
 				},
 				fields
 			);
-			var referenceFieldModules = map(
+			let referenceFieldModules = map(
 				function (e) {
 					return e['type']['refersTo'];
 				},
 				referenceFields
 			);
 			function union(a, b) {
-				var newfields = filter(
+				let newfields = filter(
 					function (e) {
 						return !contains(a, e);
 					},
@@ -110,26 +107,25 @@ function cbCWMTask($) {
 				);
 				return a.concat(newfields);
 			}
-			var relatedModules = reduceR(union, referenceFieldModules, [parent['name']]);
+			let relatedModules = reduceR(union, referenceFieldModules, [parent['name']]);
 
 			// Remove modules that is no longer accessible
 			relatedModules = diff(accessibleModules, relatedModules);
 
 			function executer(parameters) {
-				var failures = filter(function (e) {
+				let failures = filter(function (e) {
 					return e[0]==false;
 				}, parameters);
 				if (failures.length!=0) {
-					var firstFailure = failures[0];
-					callback(false, firstFailure[1]);
+					callback(false, failures[0][1]);
 				} else {
-					var moduleDescriptions = map(
+					let moduleDescriptions = map(
 						function (e) {
 							return referencify(e[1]);
 						},
 						parameters
 					);
-					var modules = dict(map(
+					let modules = dict(map(
 						function (e) {
 							return [e['name'], e];
 						},
@@ -138,7 +134,7 @@ function cbCWMTask($) {
 					callback(true, modules);
 				}
 			}
-			var p = parallelExecuter(executer, relatedModules.length);
+			let p = parallelExecuter(executer, relatedModules.length);
 			$.each(relatedModules, function (i, v) {
 				p(function (callback) {
 					vtinst.describeObject(v, callback);
@@ -153,34 +149,34 @@ function cbCWMTask($) {
 				return true;
 			};
 		}
-		var parent = modules[parentModule];
-		var fields = parent['fields'];
+		let parent = modules[parentModule];
+		let fields = parent['fields'];
 
 		function filteredFields(fields) {
 			return filter(
 				function (e) {
-					var fieldCheck = !contains(['autogenerated', 'reference', 'owner', 'multipicklist', 'password'], e.type.name);
-					var predCheck = filterPred(e);
+					let fieldCheck = !contains(['autogenerated', 'reference', 'owner', 'multipicklist', 'password'], e.type.name);
+					let predCheck = filterPred(e);
 					return fieldCheck && predCheck;
 				},
 				fields
 			);
 		}
-		var parentFields = map(
+		let parentFields = map(
 			function (e) {
 				return [e['name'], e['label']];
 			},
 			filteredFields(parent['fields'])
 		);
 
-		var referenceFieldTypes = filter(
+		let referenceFieldTypes = filter(
 			function (e) {
 				return (e['type']['name']=='reference');
 			},
 			parent['fields']
 		);
 
-		var moduleFieldTypes = {};
+		let moduleFieldTypes = {};
 		$.each(modules, function (k, v) {
 			moduleFieldTypes[k] = dict(map(function (e) {
 				return [e['name'], e['type']];
@@ -188,20 +184,19 @@ function cbCWMTask($) {
 		});
 
 		function getFieldType(fullFieldName) {
-			var group = fullFieldName.match(/(\w+) : \((\w+)\) (\w+)/);
-			if (group==null) {
-				var fieldModule = moduleName;
-				var fieldName = fullFieldName;
-			} else {
-				var fieldModule = group[2];
-				var fieldName = group[3];
+			let fieldModule = moduleName;
+			let fieldName = fullFieldName;
+			let group = fullFieldName.match(/(\w+) : \((\w+)\) (\w+)/);
+			if (group!=null) {
+				fieldModule = group[2];
+				fieldName = group[3];
 			}
 			return moduleFieldTypes[fieldModule][fieldName];
 		}
 
 		function fieldReferenceNames(referenceField) {
-			var name = referenceField['name'];
-			var label = referenceField['label'];
+			let name = referenceField['name'];
+			let label = referenceField['label'];
 			function forModule(moduleName) {
 				// If module is not accessible return no field information
 				if (!contains(accessibleModulesInfo, moduleName)) {
@@ -217,16 +212,16 @@ function cbCWMTask($) {
 			return reduceR(concat, map(forModule, referenceField['type']['refersTo']), []);
 		}
 
-		var referenceFields = reduceR(concat, map(fieldReferenceNames, referenceFieldTypes), []);
-		var fieldLabels = dict(parentFields.concat(referenceFields));
-		var select = $('#'+id);
-		var optionClass = id+'_option';
+		let referenceFields = reduceR(concat, map(fieldReferenceNames, referenceFieldTypes), []);
+		let fieldLabels = dict(parentFields.concat(referenceFields));
+		let select = $('#'+id);
+		let optionClass = id+'_option';
 		$.each(fieldLabels, function (k, v) {
 			select.append('<option class="'+optionClass+'" value="'+k+'">' + v + '</option>');
 		});
 		if (cbGroups != null) {
 			$.each(cbGroups, function (k, v) {
-				var plval = '(general : (__VtigerMeta__) groupEmailList_' + v.groupname.replace(' ', '_') + ')';
+				let plval = '(general : (__VtigerMeta__) groupEmailList_' + v.groupname.replace(' ', '_') + ')';
 				select.append('<option class="'+optionClass+'" value="'+plval+'">' + v.groupname + '</option>');
 			});
 		}
@@ -250,15 +245,15 @@ function cbCWMTask($) {
 					$('#task-fieldnames-busyicon').hide();
 					$('#task-fieldnames').show();
 					$('#task-fieldnames').change(function () {
-						var textarea = CKEDITOR.instances.messageBody;
-						var value = '$'+jQuery(this).val();
+						let textarea = CKEDITOR.instances.messageBody;
+						let value = '$'+jQuery(this).val();
 						textarea.insertHtml(value);
 					});
 
 					//time_changes
 					$('#task_timefields').change(function () {
-						var textarea = CKEDITOR.instances.messageBody;
-						var value = '$'+$(this).val();
+						let textarea = CKEDITOR.instances.messageBody;
+						let value = '$'+$(this).val();
 						textarea.insertHtml(value);
 					});
 				}));
