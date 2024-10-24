@@ -37,7 +37,7 @@ class cbmmActionallprojects extends chatactionclass {
 		$time_array = explode(':', $result->fields['totaltime']);
 		$stoped_at = (int)$time_array[0].'h '.$time_array[1].'m';
 
-		$ret = array(
+		return array(
 			'response_type' => 'in_channel',
 			'attachments' => array(array(
 				'color' => getMMMsgColor('yellow'),
@@ -45,7 +45,6 @@ class cbmmActionallprojects extends chatactionclass {
 				'text' => getTranslatedString('TypeProject', 'chatwithme')."\n\n".$this->getProjects(),
 			)),
 		);
-		return $ret;
 	}
 
 	private function getProjects() {

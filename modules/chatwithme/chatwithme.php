@@ -34,7 +34,6 @@ class chatwithme extends CRMEntity {
 			$adb->query("INSERT INTO vtiger_notificationdrivers (type,path,functionname) VALUES ('CWM','modules/chatwithme/cwmapi.php','__cwmDoNothing')");
 			include_once 'vtlib/Vtiger/Module.php';
 			include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
-			$taskTypes = array();
 			$defaultModules = array('include' => array(), 'exclude'=>array());
 			$taskType= array(
 				"name"=>"CBSendMMMSGTask",

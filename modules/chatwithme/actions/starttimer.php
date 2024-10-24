@@ -73,14 +73,13 @@ class cbmmActionstarttimer extends chatactionclass {
 					'text' => getTranslatedString('ThereIsOpenTimer', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'text' => getTranslatedString('StartedNewTimer', 'chatwithme'),
 			);
-			return $ret;
 		}
+		return $ret;
 	}
 }
 ?>

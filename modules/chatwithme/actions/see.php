@@ -24,14 +24,13 @@ class cbmmActionsee extends chatactionclass {
 		$req = getMMRequest();
 		$prm = parseMMMsg($req['text']);
 		if (!isRecordExists($prm[1])) {
-			$ret = array(
+			return array(
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
 					'color' => getMMMsgColor('red'),
 					'text' => getTranslatedString('FoundSome', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		}
 		$this->crmid = $prm[1];
 		$module = getSalesEntityType($this->crmid);

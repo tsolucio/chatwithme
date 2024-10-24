@@ -201,7 +201,7 @@ class cbmmActionRemindme extends chatactionclass {
 			}
 		}
 		list($h, $m, $i) = explode(':', $ts);
-		return ($d+$h*60+$m);
+		return $d+$h*60+$m;
 	}
 }
 ?>

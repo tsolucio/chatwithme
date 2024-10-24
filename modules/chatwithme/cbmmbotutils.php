@@ -137,9 +137,10 @@ function getMMRequest() {
 		[post_id] => jmjh5bsotid98ma4x7xtiy7mfh
 		[timestamp] => 1544209327
 	*/
+	$chnlname = isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '';
 	$ret = array(
 		'channel_id' => isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : '',
-		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : ''),
+		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : $chnlname,
 		'channel_dname' => isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '',
 		'team_domain' => isset($_REQUEST['team_domain']) ? vtlib_purify($_REQUEST['team_domain']) : '',
 		'team_id' => isset($_REQUEST['team_id']) ? vtlib_purify($_REQUEST['team_id']) : '',
@@ -217,7 +218,7 @@ function getMMSettings() {
 }
 
 function isMMActive() {
-	return (coreBOS_Settings::getSetting('cbmm_isactive', '0')=='1');
+	return coreBOS_Settings::getSetting('cbmm_isactive', '0')=='1';
 }
 
 function getMMDoNotUnderstandMessage($msg) {
@@ -261,7 +262,7 @@ function cwm_isPicklist($field, $module) {
 	$res = $adb->pquery('SELECT * FROM vtiger_field WHERE fieldname=? AND tabid=?', array($field, getTabid($module)));
 	if ($res && $adb->num_rows($res)==1) {
 		$fld = WebserviceField::fromQueryResult($adb, $res, 0);
-		return ($fld->getFieldDataType()=='picklist');
+		return $fld->getFieldDataType()=='picklist';
 	} else {
 		return false;
 	}

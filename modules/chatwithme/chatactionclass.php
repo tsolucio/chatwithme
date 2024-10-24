@@ -16,10 +16,6 @@
 
 class chatactionclass {
 
-	public function __construct() {
-		//
-	}
-
 	public function getHelp() {
 		return '';
 	}

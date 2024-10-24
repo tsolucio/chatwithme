@@ -362,17 +362,7 @@ class cbmmActionstoptimer extends chatactionclass {
 		if (empty($this->open_timer_status)) {
 			$this->open_timer_status = $this->time_status;
 		}
-		if ($this->open_timer_status == self::STATUS_BADFORMAT) {
-			$helpcommand = substr($this->getHelp(), 3);
-			$ret = array(
-				'response_type' => 'in_channel',
-				'attachments' => array(array(
-					'color' => getMMMsgColor('yellow'),
-					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".$helpcommand,
-				)),
-			);
-			return $ret;
-		} elseif ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
+		if ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
@@ -380,7 +370,6 @@ class cbmmActionstoptimer extends chatactionclass {
 					'text' => getTranslatedString('NoOpenTimer', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_NO_DESCRIPTION) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -389,7 +378,6 @@ class cbmmActionstoptimer extends chatactionclass {
 					'text' => getTranslatedString('NoTimeDescription', 'chatwithme')."\n".getTranslatedString('stoptimer_command', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_TYPE_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -398,7 +386,6 @@ class cbmmActionstoptimer extends chatactionclass {
 					'text' => getTranslatedString('WorkTypeNotFound', 'chatwithme')."\n".getTranslatedString('stoptimer_command', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_MISSINGTYPE) {
 			$fieldsArray = array();
 			$req = getMMRequest();
@@ -413,7 +400,8 @@ class cbmmActionstoptimer extends chatactionclass {
 			$this->timeinfo['recid'] = $this->recid;
 			coreBOS_Settings::setSetting($tcinfoid, json_encode($this->timeinfo));
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -457,7 +445,6 @@ class cbmmActionstoptimer extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_MISSINGPRJTASK) {
 			$fieldsArray = array();
 			$req = getMMRequest();
@@ -472,7 +459,8 @@ class cbmmActionstoptimer extends chatactionclass {
 			$this->timeinfo['recid'] = $this->recid;
 			coreBOS_Settings::setSetting($tcinfoid, json_encode($this->timeinfo));
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -515,7 +503,6 @@ class cbmmActionstoptimer extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_TIMER_CLOSED) {
 			$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
 			$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
@@ -529,8 +516,17 @@ class cbmmActionstoptimer extends chatactionclass {
 					.($prjtsk ? getTranslatedString('UpdateFeedback4', 'chatwithme').' "'.$this->ptask.'"' : '')
 					.getTranslatedString('UpdateFeedback3', 'chatwithme').' "'.$this->typeofwork.'"',
 			);
-			return $ret;
+		} else { //$this->open_timer_status == self::STATUS_BADFORMAT or anything else
+			$helpcommand = substr($this->getHelp(), 3);
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
 		}
+		return $ret;
 	}
 
 	private function processUnkownTextField($unknownfield, $chname, $prjtsk, $prjsubtsk) {

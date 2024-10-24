@@ -60,14 +60,13 @@ class cbmmActiontask extends chatactionclass {
 				'text' => getTranslatedString('UpdateFeedback1', 'chatwithme').$this->stoped_at.' '.getTranslatedString('For', 'chatwithme').' '.
 				$this->project.getTranslatedString('UpdateFeedback2', 'chatwithme').' '.$this->subject,
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'text' => getTranslatedString('NoOpenTimer', 'chatwithme'),
 			);
-			return $ret;
 		}
+		return $ret;
 	}
 }
 ?>

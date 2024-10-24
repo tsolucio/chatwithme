@@ -1343,20 +1343,18 @@ class cbmmActionsbcreatetime extends chatactionclass {
 	}
 
 	private function processTimeField($timevalue) {
-		if (preg_match('/^[0-9:]+$/', $timevalue)) {
-			if (!preg_match('/\d\d:\d\d/', $timevalue)) {
-				if (strpos($timevalue, ':')!==false) {
-					list($h, $m) = explode(':', $timevalue);
-					$h = substr('00'.$h, -2);
-					$m = substr('00'.$m, -2);
-				} else {
-					$h = (int)($timevalue / 60);
-					$m = ($timevalue % 60);
-					$h = substr('00'.$h, -2);
-					$m = substr('00'.$m, -2);
-				}
-				$timevalue = $h.':'.$m;
+		if (preg_match('/^[0-9:]+$/', $timevalue) && !preg_match('/\d\d:\d\d/', $timevalue)) {
+			if (strpos($timevalue, ':')!==false) {
+				list($h, $m) = explode(':', $timevalue);
+				$h = substr('00'.$h, -2);
+				$m = substr('00'.$m, -2);
+			} else {
+				$h = (int)($timevalue / 60);
+				$m = ($timevalue % 60);
+				$h = substr('00'.$h, -2);
+				$m = substr('00'.$m, -2);
 			}
+			$timevalue = $h.':'.$m;
 		}
 		return $timevalue;
 	}
@@ -1430,16 +1428,7 @@ class cbmmActionsbcreatetime extends chatactionclass {
 	public function getResponse() {
 		global $site_URL;
 		$helpcommand = substr($this->getHelp(), 3);
-		if ($this->time_status == self::STATUS_BADFORMAT) {
-			$ret = array(
-				'response_type' => 'in_channel',
-				'attachments' => array(array(
-					'color' => getMMMsgColor('yellow'),
-					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".$helpcommand,
-				)),
-			);
-			return $ret;
-		} elseif ($this->time_status == self::STATUS_TIMEFORMAT) {
+		if ($this->time_status == self::STATUS_TIMEFORMAT) {
 			$ret = array(
 				'response_type' => 'in_channel',
 				'attachments' => array(array(
@@ -1447,7 +1436,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('BadTimeFormat', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_TIMEOVER8) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1456,7 +1444,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('BadTimeOver8', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_TIMEOVER8TOTAL) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1465,7 +1452,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('BadTimeOver8Total', 'chatwithme'),
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_DATEFORMAT) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1474,7 +1460,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('BadDateFormat', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_PRJTASK_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1483,7 +1468,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('PrjTaskNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_PRJSUBTASK_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1492,7 +1476,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('PrjSubTaskNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_PRJTASKSTATUS_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1501,7 +1484,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('PrjTaskStatusNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_PRJSUBTASKSTATUS_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1510,7 +1492,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('PrjSubTaskStatusNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_TYPE_NOTFOUND) {
 			$ret = array(
 				'response_type' => 'in_channel',
@@ -1519,7 +1500,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'text' => getTranslatedString('WorkTypeNotFound', 'chatwithme')."\n".$helpcommand,
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_MISSINGTYPE) {
 			$fieldsArray = array();
 			$req = getMMRequest();
@@ -1529,7 +1509,8 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			$tcinfoid = uniqid('CTC');
 			coreBOS_Settings::setSetting($tcinfoid, json_encode($this->timeinfo));
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -1572,7 +1553,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_MISSINGPRJTASK) {
 			$fieldsArray = array();
 			$req = getMMRequest();
@@ -1582,7 +1562,8 @@ class cbmmActionsbcreatetime extends chatactionclass {
 			$tcinfoid = uniqid('CTC');
 			coreBOS_Settings::setSetting($tcinfoid, json_encode($this->timeinfo));
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -1625,7 +1606,6 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->time_status == self::STATUS_TIMER_CLOSED || $this->time_status == self::STATUS_TIMER_CLOSED_STATUSNOTCHANGED) {
 			$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);
 			$prjsubtsk = GlobalVariable::getVariable('CWM_TC_ProjectSubTask', 0);
@@ -1639,8 +1619,16 @@ class cbmmActionsbcreatetime extends chatactionclass {
 					.($prjtsk ? getTranslatedString('UpdateFeedback4', 'chatwithme').' "'.$this->timeinfo['projecttask'].'"' : '')
 					.getTranslatedString('UpdateFeedback3', 'chatwithme').' "'.$this->timeinfo['typeofwork'].'"',
 			);
-			return $ret;
+		} else { // $this->time_status == self::STATUS_BADFORMAT or anything else
+			$ret = array(
+				'response_type' => 'in_channel',
+				'attachments' => array(array(
+					'color' => getMMMsgColor('yellow'),
+					'text' => getTranslatedString('IncorrectFormat', 'chatwithme')."\n".$helpcommand,
+				)),
+			);
 		}
+		return $ret;
 	}
 }
 ?>

@@ -121,13 +121,13 @@ function sbProjectTaskExist($projectbrand, $prjtsk) {
 			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? limit 1',
 		array($projectbrand, $prjtsk)
 	);
-	return ($rstasks && $adb->num_rows($rstasks)>0);
+	return $rstasks && $adb->num_rows($rstasks)>0;
 }
 
 function sbgetPrjTaskStatus($status) {
 	global $adb;
 	$rstasks = $adb->pquery('select 1 from vtiger_projecttaskstatus where projecttaskstatus=?', array($status));
-	return ($rstasks && $adb->num_rows($rstasks)>0);
+	return $rstasks && $adb->num_rows($rstasks)>0;
 }
 
 function sbProjectSubTaskExist($projectbrand, $prjtsk, $prjsubtsk) {
@@ -141,13 +141,13 @@ function sbProjectSubTaskExist($projectbrand, $prjtsk, $prjsubtsk) {
 			where deleted=0 and vtiger_project.projectname=? and projecttaskname=? and projectsubtaskname=? limit 1',
 		array($projectbrand, $prjtsk, $prjsubtsk)
 	);
-	return ($rstasks && $adb->num_rows($rstasks)>0);
+	return $rstasks && $adb->num_rows($rstasks)>0;
 }
 
 function sbgetPrjSubTaskStatus($status) {
 	global $adb;
 	$rstasks = $adb->pquery('select 1 from vtiger_projectsubtaskprogress where projectsubtaskprogress=?', array($status));
-	return ($rstasks && $adb->num_rows($rstasks)>0);
+	return $rstasks && $adb->num_rows($rstasks)>0;
 }
 
 function changePrjSubTaskStatus($projectbrand, $prjtsk, $prjsubtsk, $tskstatus) {
@@ -228,27 +228,17 @@ function sbTypeOfWorkMapExist($projectbrand) {
 	$cn = explode('-', $projectbrand);
 	$projectbrand = $cn[0].'-'.$cn[1];
 	$rs = $adb->pquery(
-		'select cbmapid
-			from vtiger_cbmap
-			inner join vtiger_crmentity on crmid=cbmapid
-			where deleted=0 and mapname=?',
+		'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 		array($projectbrand.'-'.$req['team_dname'])
 	);
 	if ($rs && $adb->num_rows($rs)==1) {
 		return true;
 	} else {
 		$rs = $adb->pquery(
-			'select cbmapid
-				from vtiger_cbmap
-				inner join vtiger_crmentity on crmid=cbmapid
-				where deleted=0 and mapname=?',
+			'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 			array($projectbrand)
 		);
-		if ($rs && $adb->num_rows($rs)==1) {
-			return true;
-		} else {
-			return false;
-		}
+		return $rs && $adb->num_rows($rs)==1;
 	}
 }
 
@@ -258,20 +248,14 @@ function sbgetAllTypeOfWork($projectbrand) {
 	$cn = explode('-', $projectbrand);
 	$projectbrand = $cn[0].'-'.$cn[1];
 	$rs = $adb->pquery(
-		'select cbmapid
-			from vtiger_cbmap
-			inner join vtiger_crmentity on crmid=cbmapid
-			where deleted=0 and mapname=?',
+		'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 		array($projectbrand.'-'.$req['team_dname'])
 	);
 	if ($rs && $adb->num_rows($rs)==1) {
 		$mapid = $rs->fields['cbmapid'];
 	} else {
 		$rs = $adb->pquery(
-			'select cbmapid
-				from vtiger_cbmap
-				inner join vtiger_crmentity on crmid=cbmapid
-				where deleted=0 and mapname=?',
+			'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 			array($projectbrand)
 		);
 		if ($rs && $adb->num_rows($rs)==1) {
@@ -305,20 +289,14 @@ function sbgetTypeOfWork($projectbrand, $typeofworkid) {
 	$cn = explode('-', $projectbrand);
 	$projectbrand = $cn[0].(isset($cn[1]) ? '-'.$cn[1] : '');
 	$rs = $adb->pquery(
-		'select cbmapid
-			from vtiger_cbmap
-			inner join vtiger_crmentity on crmid=cbmapid
-			where deleted=0 and mapname=?',
+		'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 		array($projectbrand.'-'.$req['team_dname'])
 	);
 	if ($rs && $adb->num_rows($rs)==1) {
 		$mapid = $rs->fields['cbmapid'];
 	} else {
 		$rs = $adb->pquery(
-			'select cbmapid
-				from vtiger_cbmap
-				inner join vtiger_crmentity on crmid=cbmapid
-				where deleted=0 and mapname=?',
+			'select cbmapid from vtiger_cbmap inner join vtiger_crmentity on crmid=cbmapid where deleted=0 and mapname=?',
 			array($projectbrand)
 		);
 		if ($rs && $adb->num_rows($rs)==1) {
