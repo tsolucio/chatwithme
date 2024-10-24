@@ -46,6 +46,7 @@ class cbmmActionstoptimer extends chatactionclass {
 	private $typeofwork = '';
 	private $stoped_at;
 	private $ptask;
+	public $time_status;
 
 	public function getHelp() {
 		$prjtsk = GlobalVariable::getVariable('CWM_TC_ProjectTask', 0);

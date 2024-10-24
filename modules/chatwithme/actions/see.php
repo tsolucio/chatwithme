@@ -15,6 +15,7 @@
 *************************************************************************************************/
 
 class cbmmActionsee extends chatactionclass {
+	public $crmid;
 
 	public function getHelp() {
 		return ' - '.getTranslatedString('see_command', 'chatwithme');

@@ -14,6 +14,16 @@ require_once 'modules/chatwithme/cbmmbotutils.php';
 
 class VTSendMessage2MMTask extends VTTask {
 	public $executeImmediately = true;
+	public $messageTitle;
+	public $messageBody;
+	public $messageColor;
+	public $button_title1;
+	public $button_url1;
+	public $button_title2;
+	public $button_url2;
+	public $button_title3;
+	public $button_url3;
+	public $ephemeral;
 
 	public function getFieldNames() {
 		return array('messageTitle','messageBody','messageColor','button_title1','button_url1','button_title2','button_url2','button_title3','button_url3','ephemeral');
