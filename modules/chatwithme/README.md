@@ -10,8 +10,8 @@ To get a list of the features that are currently supported you can execute the `
 
 ### Requirements
 
-- up to date coreBOS application, optionally with Timecontrol module installed
-- up to date Mattermost application
+- up-to-date coreBOS application, optionally with Timecontrol module installed
+- up-to-date Mattermost application
 
 ### System Setup
 
@@ -27,7 +27,7 @@ After installing the plugin in Mattermost and the `chatwithme` extension in core
    6. **Default Mattermost user password**: This is the password used when syncing users for the first time. Each user in coreBOS must be synced to their user in mattermost. This is done in the user's preferences page.
 3. Configure the Mattermost extension
    1. Install the latest build of the ChatWithMe plugin in the Mattermost admin panel under **System Console** >> **Plugin Management** >> **Upload Plugin**. You can find this plugin at [mattermostcoreBOS](https://github.com/SpikeTings/mattermostcorebos) with instructions on how to build it.
-   2. Once installed, go to the settings page, activate the plugin and fill in the fields
+   2. Once installed, go to the settings page, activate the plugin, and fill in the fields
    3. The `ChatWithMeTriggerWords` filter accepted actions in this Mattermost installation. The normally supported values are: `#ayuda,#busca,#muestra,#actualiza,#edita,#crea,#borra,#ver,#iniciacontador,#paracontador,#registratiempo,#avisame,#lista,#help,#find,#show,#update,#edit,#create,#delete,#see,#starttimer,#stoptimer,#logtime,#remindme,#list,#task,#taskfortime,#taskforproject,#sbsavetime,#time`
 
 The following images show an example configuration.
@@ -55,7 +55,7 @@ coreBOS includes two new fields to facilitate user synchronization:
 - **mmuserid**: Stores the Mattermost user ID.
 - **MM Team (mmteam)**: Indicates the team to which the user will be added when sent to Mattermost. This field must be set manually.
 
-A Business Action called **Sync with Mattermost** has been created in coreBOS and added to the Users preferences page. It reads values from the Users table and sends them to the Mattermost `syncuser` service. The response is then stored in the `mmuserid` field in the Users record.
+A Business Action called **Sync with Mattermost** has been created in coreBOS and added to the Users' preferences page. It reads values from the Users table and sends them to the Mattermost `syncuser` service. The response is stored in the `mmuserid` field in the User's record.
 
 If a user with the same email is found in the connected Mattermost installation, the user ID of that user will be returned, if no user is found a new user will be created in the assigned team and the user ID of the new user will be set for further communications.
 
@@ -77,21 +77,21 @@ The syntax of the command is:
 
 `#time hh:mm "task description" {units} {yyyy-mm-dd} {"type"}`
 
-According to the syntax, we have to type the keyword `time`, the amount of time that we actually worked, the task description, and then optionally we can put units, date and type of work.
+According to the syntax, we have to type the keyword `time`, the amount of time that we worked, and the task description, and then optionally we can put units, date and type of work.
 
 Let's see how we can define the Project and types of work.
 
-- first we must execute the [addCWM_TCFields](https://github.com/joebordes/chatwithme/blob/master/modules/chatwithme/changesets/addCWM_TCFields.php) changeset to add new fields to the application
+- first we must execute the [addCWM_TCFields](https://github.com/tsolucio/chatwithme/blob/master/modules/chatwithme/changesets/addCWM_TCFields.php) changeset to add new fields to the application
 - in the Project module, fill the Brand picklist with values from the company names stored in the Accounts module
 - in the Project module, fill the Type picklist with project names the users will be working on
-- in the Timecontrol module, fill the Brand and Related Concept picklists.
-  - The Brand corresponds to the company name; copy paste the values of the homonymous field in Project module.
-  - Related Concept corresponds to the Type picklist of the project; copy paste the values of the Type field in Project module.
-- Create Business Maps for Timecontrol Type of Work values. There should be one map for each combination of Company, Project and Team.
+- in the Timecontrol module, fill in the Brand and Related Concept picklists.
+  - The Brand corresponds to the company name; copy and paste the values of the homonymous field in the Project module.
+  - Related Concept corresponds to the Type picklist of the project; copy and paste the values of the Type field in the Project module.
+- Create Business Maps for Timecontrol Type of Work values. There should be one map for each combination of Company, Project, and Team.
   - The name of the Map should follow this syntax: `companyname-projectname-teamname`
-    - companyname- is the name of the company that you have specified at the Organizations module (or the Brand picklist)
-    - projectname- is the value that you have specified at the Type picklist at Projects.
-    - teamname- is the name of MatterMost's team
+    - companyname is the name of the company that you have specified in the Organizations module (or the Brand picklist)
+    - projectname is the value that you have specified in the Type picklist at Projects.
+    - teamname is the name of MatterMost team
   - for example
 
 ```xml
