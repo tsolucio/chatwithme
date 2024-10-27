@@ -36,14 +36,14 @@ class cbmmActionsee extends chatactionclass {
 		$this->crmid = $prm[1];
 		$module = getSalesEntityType($this->crmid);
 		$ent = CRMEntity::getInstance($module);
-		$data = $ent->retrieve_entity_info($prm[1], $module);
+		$ent->retrieve_entity_info($prm[1], $module); // fills column_fields
 		$blocks = getBlocks($module, 'detail_view', '', $ent->column_fields);
 		$fieldsArray = array();
-		foreach ($blocks as $rows) {
-			foreach ($rows as $fields) {
+		foreach ($blocks as $block) {
+			foreach ($block['__fields'] as $fields) {
 				foreach ($fields as $label => $field) {
 					$fieldsArray[] = array(
-						'short' => ((($field['ui']==20) || ($field['ui']==19)) ? false: true),
+						'short' => $field['ui']!=20 && $field['ui']!=19,
 						'title' => $label,
 						'value' => convertFieldValue2Markdown($field['value']),
 					);

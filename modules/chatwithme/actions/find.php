@@ -255,6 +255,7 @@ class cbmmActionfind extends chatactionclass {
 	}
 
 	private function getSearchResultMsg($result) {
+		global $site_URL;
 		if (empty($result)) {
 			$ret = array(
 				'color' => getMMMsgColor('yellow'),
@@ -277,11 +278,10 @@ class cbmmActionfind extends chatactionclass {
 						continue;
 					}
 					if ($flabel == 'id') {
-						list($wsid, $crmid) = explode('x', $fvalue);
-						$md .= $crmid.' | ';
-					} else {
-						$md .= convertFieldValue2Markdown($fvalue).' | ';
+						$crmid = vtws_getCRMID($fvalue);
+						$fvalue = "<a href='$site_URL/index.php?action=DetailView&module=".$rdorow['search_module_name']."&record=$crmid'>$crmid</a>";
 					}
+					$md .= convertFieldValue2Markdown($fvalue).' | ';
 				}
 				$md = trim($md)."\n";
 				$numrows++;

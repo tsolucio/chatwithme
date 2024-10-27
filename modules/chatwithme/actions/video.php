@@ -36,8 +36,8 @@ class cbmmActionvideo extends chatactionclass {
 			$this->name = str_replace(' ', '_', $req['user_name']);
 		} else {
 			global $adb;
-			$u = $adb->pquery('select first_name,last_name from vtiger_users where mmuserid=?', array($req['user_id']));
-			$this->name = str_replace(' ', '_', $u->fields['first_name'].'_'.$u->fields['last_name']);
+			$u = $adb->pquery('select ename from vtiger_users where mmuserid=?', array($req['user_id']));
+			$this->name = str_replace(' ', '_', $u->fields['ename']);
 		}
 		return true;
 	}
