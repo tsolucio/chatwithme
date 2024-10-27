@@ -211,7 +211,8 @@ class cbmmActionsbsavetime extends chatactionclass {
 			$prjtype = $cn[1];
 			$tcinfoid = $_REQUEST['tc'];
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -254,7 +255,6 @@ class cbmmActionsbsavetime extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_MISSINGPRJTASK) {
 			$fieldsArray = array();
 			$req = getMMRequest();
@@ -263,7 +263,8 @@ class cbmmActionsbsavetime extends chatactionclass {
 			$prjtype = $cn[1];
 			$tcinfoid = $_REQUEST['tc'];
 			$chnlsep = '::';
-			$chid = (isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : (isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : ''));
+			$chnlid = isset($_REQUEST['chnl_id']) ? vtlib_purify($_REQUEST['chnl_id']) : '';
+			$chid = isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : $chnlid;
 			$chnlinfo = (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '').$chnlsep
 				.(isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '').$chnlsep.$chid;
 			coreBOS_Settings::setSetting('CWMCHINFO'.$chid, $chnlinfo);
@@ -306,7 +307,6 @@ class cbmmActionsbsavetime extends chatactionclass {
 					'actions' => $fieldsArray
 				)),
 			);
-			return $ret;
 		} elseif ($this->open_timer_status == self::STATUS_NO_OPEN_TIMER) {
 			$ret = array(
 				'response_type' => 'in_channel',

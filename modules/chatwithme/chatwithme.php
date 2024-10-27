@@ -18,7 +18,7 @@ class chatwithme extends CRMEntity {
 	/** Indicator if this is a custom module or standard module */
 	public $IsCustomModule = true;
 	public $HasDirectImageField = false;
-	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'sync');
+	public $moduleIcon = array('library' => 'utility', 'containerClass' => 'slds-icon_container slds-icon-standard-user', 'class' => 'slds-icon', 'icon'=>'chat');
 	public $tab_name = array();
 	public $tab_name_index = array();
 
@@ -34,7 +34,6 @@ class chatwithme extends CRMEntity {
 			$adb->query("INSERT INTO vtiger_notificationdrivers (type,path,functionname) VALUES ('CWM','modules/chatwithme/cwmapi.php','__cwmDoNothing')");
 			include_once 'vtlib/Vtiger/Module.php';
 			include_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
-			$taskTypes = array();
 			$defaultModules = array('include' => array(), 'exclude'=>array());
 			$taskType= array(
 				"name"=>"CBSendMMMSGTask",

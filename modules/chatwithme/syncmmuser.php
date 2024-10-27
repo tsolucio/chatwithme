@@ -14,9 +14,11 @@
 * at <http://corebos.org/documentation/doku.php?id=en:devel:vpl11>
 *************************************************************************************************/
 require_once 'modules/chatwithme/cbmmbotutils.php';
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 global $adb, $current_user;
-define("INVALIDMMTEAM", "MM_TEAM_ERROR");
+define('INVALIDMMTEAM', 'MM_TEAM_ERROR');
 if (!is_admin($current_user)) {
 	echo '<br><br>';
 	$smarty = new vtigerCRM_Smarty();
@@ -36,15 +38,28 @@ if ($return_module!='Users' || !isRecordExists(vtws_getEntityId('Users').'x'.$us
 	$smarty->display('applicationmessage.tpl');
 	exit;
 }
+$moduser = Vtiger_Module::getInstance('Users');
+$block = Vtiger_Block::getInstance('LBL_MORE_INFORMATION', $moduser);
+$field = Vtiger_Field::getInstance('mmteam', $moduser);
+if ($block && !$field) {
+	$fieldInstance = new Vtiger_Field();
+	$fieldInstance->name = 'mmteam';
+	$fieldInstance->label = 'MM Team';
+	$fieldInstance->columntype = 'varchar(200)';
+	$fieldInstance->uitype = 1;
+	$fieldInstance->displaytype = 1;
+	$fieldInstance->typeofdata = 'V~O';
+	$block->addField($fieldInstance);
+}
 
-/*
-	Username  string `json:"username"`
-	Password  string `json:"password,omitempty"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Position  string `json:"position"`
-	Roles     string `json:"roles"`
+/**
+	Username  string `json:'username'`
+	Password  string `json:'password,omitempty'`
+	Email     string `json:'email'`
+	FirstName string `json:'first_name'`
+	LastName  string `json:'last_name'`
+	Position  string `json:'position'`
+	Roles     string `json:'roles'`
 */
 function cbmmSendUserData($usrid) {
 	global $adb;
@@ -62,19 +77,28 @@ function cbmmSendUserData($usrid) {
 		'Roles'     => 'system_user',
 		'TeamNames' => $rs->fields['mmteam'],
 	);
-	$msg = json_encode($response);
 	$posturl = coreBOS_Settings::getSetting('cbmm_posturl', '');
 	if (empty($posturl)) {
 		return '';
 	}
 	$posturl .= '/plugins/com.corebos.server/syncuser';
-	$client = new Vtiger_Net_Client($posturl);
-	$client->setHeaders(array(
-		'Content-Type' => 'application/json',
-		'Content-Length' => strlen($msg),
-	));
-	$ret = $client->doPost($msg);
-	$resp = json_decode($ret, true);
+	$client = new Client();
+	try {
+		$response = $client->post(
+			$posturl,
+			[
+				'headers' => [
+					'Content-Type' => 'application/json',
+					'Accept' => 'application/json',
+				],
+				'json' => $response,
+			]
+		);
+		$body = $response->getBody()->getContents();
+		$resp = json_decode($body, true);
+	} catch (RequestException $e) {
+		$resp = ['id' => 0];
+	}
 	return $resp['id'];
 }
 
@@ -83,7 +107,7 @@ if (!empty($mmuserid) && $mmuserid != 'MM_TEAM_ERROR') {
 	$adb->pquery('UPDATE vtiger_users set mmuserid=? where id=?', array($mmuserid, $usrid));
 	$msg = getTranslatedString('MMUserIDUpdated', 'chatwithme');
 	$msgc = '&error_msgclass=cb-alert-success';
-} elseif ($mmuserid == "MM_TEAM_ERROR") {
+} elseif ($mmuserid == 'MM_TEAM_ERROR') {
 	$msg = getTranslatedString('MMUserTEAMError', 'chatwithme');
 	$msgc = '';
 } else {

@@ -14,13 +14,43 @@ require_once 'modules/chatwithme/cbmmbotutils.php';
 
 class VTSendMessage2MMTask extends VTTask {
 	public $executeImmediately = true;
+	public $messageTitle;
+	public $messageBody;
+	public $messageColor;
+	public $button_title1;
+	public $button_url1;
+	public $button_title2;
+	public $button_url2;
+	public $button_title3;
+	public $button_url3;
+	public $ephemeral;
 
 	public function getFieldNames() {
 		return array('messageTitle','messageBody','messageColor','button_title1','button_url1','button_title2','button_url2','button_title3','button_url3','ephemeral');
 	}
 
+	public function getContextVariables() {
+		return array(
+			'CWMWorkflowChannelName' => array(
+				'type' => '1',
+				'values' => '',
+				'modules' => '',
+				'massaction' => true,
+				'description' => 'HELP_CWMWorkflowChannelName',
+			),
+			'CWMWorkflowChannelID' => array(
+				'type' => '1',
+				'values' => 0,
+				'modules' => '',
+				'massaction' => true,
+				'description' => 'HELP_CWMWorkflowChannelID',
+			),
+		);
+	}
+
 	public function doTask(&$entity) {
 		global $current_user, $logbg, $adb, $configmm, $site_URL;
+		$logbg->debug('> SendMessage2MMTask');
 		$data = $entity->getData();
 		$usrid = explode('x', $data['assigned_user_id']);
 		$focus = new Users();
@@ -91,9 +121,11 @@ class VTSendMessage2MMTask extends VTTask {
 			}
 			$textdata['attachments'] = array($attachments);
 		}
-		$logbg->debug('Mattermost msg sent:');
-		$logbg->debug($textdata);
+		$logmsg = 'Mattermost msg sent:';
+		$logbg->debug($logmsg, [$textdata]);
+		$this->logmessages[] = json_encode([$logmsg, $textdata]);
 		sendMMMsg($textdata, false);
+		$logbg->debug('< SendMessage2MMTask');
 	}
 }
 ?>

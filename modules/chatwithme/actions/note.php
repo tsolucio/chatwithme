@@ -153,6 +153,7 @@ class cbmmActionnote extends chatactionclass {
 						'text' => getTranslatedString('NewRecordNotAdded', 'chatwithme'),
 					)),
 				);
+				break;
 			case self::USER_NOT_FOUND:
 				$ret = array(
 					'response_type' => 'in_channel',

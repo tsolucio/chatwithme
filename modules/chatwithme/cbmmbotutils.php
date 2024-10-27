@@ -15,6 +15,8 @@
 *************************************************************************************************/
 require 'modules/chatwithme/vendor/autoload.php';
 use League\HTMLToMarkdown\HtmlConverter;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 include_once 'vtlib/Vtiger/Net/Client.php';
 
@@ -67,13 +69,18 @@ function sendMMResponse($response) {
  */
 function sendMMPost($response) {
 	global $configmm;
-	$msg = json_encode($response);
-	$client = new Vtiger_Net_Client($configmm['posturl'].'/plugins/com.corebos.server/postmessage');
-	$client->setHeaders(array(
-		'Content-Type' => 'application/json',
-		'Content-Length' => strlen($msg),
-	));
-	$client->doPost($msg);
+	$client = new Client();
+	$response = $client->post(
+		$configmm['posturl'].'/plugins/com.corebos.server/postmessage',
+		[
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Content-Length' => strlen(json_encode($response)),
+				'Accept' => 'application/json',
+			],
+			'json' => $response,
+		]
+	);
 }
 
 function parseMMMsg($text) {
@@ -137,9 +144,10 @@ function getMMRequest() {
 		[post_id] => jmjh5bsotid98ma4x7xtiy7mfh
 		[timestamp] => 1544209327
 	*/
+	$chnlname = isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : '';
 	$ret = array(
 		'channel_id' => isset($_REQUEST['channel_id']) ? vtlib_purify($_REQUEST['channel_id']) : '',
-		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : (isset($_REQUEST['chnl_name']) ? vtlib_purify($_REQUEST['chnl_name']) : ''),
+		'channel_name' => isset($_REQUEST['channel_name']) ? vtlib_purify($_REQUEST['channel_name']) : $chnlname,
 		'channel_dname' => isset($_REQUEST['chnl_dname']) ? vtlib_purify($_REQUEST['chnl_dname']) : '',
 		'team_domain' => isset($_REQUEST['team_domain']) ? vtlib_purify($_REQUEST['team_domain']) : '',
 		'team_id' => isset($_REQUEST['team_id']) ? vtlib_purify($_REQUEST['team_id']) : '',
@@ -182,8 +190,7 @@ function getMMMsgColor($color) {
 
 function logMMCommand($mmuser, $command, $text, $found) {
 	global $adb, $current_user;
-	$usrid = (empty($current_user) ? 0 : $current_user->id);
-	$adb->pquery('insert into chatwithme_log values (?,?,?,?,?,?)', array($usrid, $mmuser, date('Y-m-d H:i:s'), $command, $text, $found));
+	$adb->pquery('insert into chatwithme_log values (?,?,?,?,?,?)', [empty($current_user) ? 0 : $current_user->id, $mmuser, date('Y-m-d H:i:s'), $command, $text, $found]);
 }
 
 function saveMMSettings($isactive, $cmdlang, $username, $iconurl, $posturl, $tokens, $mmuserpasswd) {
@@ -217,7 +224,7 @@ function getMMSettings() {
 }
 
 function isMMActive() {
-	return (coreBOS_Settings::getSetting('cbmm_isactive', '0')=='1');
+	return coreBOS_Settings::getSetting('cbmm_isactive', '0')=='1';
 }
 
 function getMMDoNotUnderstandMessage($msg) {
@@ -235,21 +242,23 @@ function convertFieldValue2Markdown($value) {
 	global $site_URL, $default_charset;
 	if (!empty($value)) {
 		$value = html_entity_decode($value, ENT_QUOTES, $default_charset);
-		$dom = new DOMDocument;
-		$dom->loadHTML($value);
-		$images = $dom->getElementsByTagName('img');
-		foreach ($images as $image) {
-			if (strpos($image->getAttribute('src'), $site_URL)===false) {
-				$image->setAttribute('src', $site_URL.'/'.$image->getAttribute('src'));
+		if (strpos($value, '<img ')===true || strpos($value, '<a href=')===true) {
+			$dom = new DOMDocument;
+			$dom->loadHTML($value);
+			$images = $dom->getElementsByTagName('img');
+			foreach ($images as $image) {
+				if (strpos($image->getAttribute('src'), $site_URL)===false) {
+					$image->setAttribute('src', $site_URL.'/'.$image->getAttribute('src'));
+				}
 			}
-		}
-		$links = $dom->getElementsByTagName('a');
-		foreach ($links as $link) {
-			if (strpos($link->getAttribute('href'), $site_URL)===false) {
-				$link->setAttribute('href', $site_URL.'/'.$link->getAttribute('href'));
+			$links = $dom->getElementsByTagName('a');
+			foreach ($links as $link) {
+				if (strpos($link->getAttribute('href'), $site_URL)===false) {
+					$link->setAttribute('href', $site_URL.'/'.$link->getAttribute('href'));
+				}
 			}
+			$value = $dom->saveHTML();
 		}
-		$value = $dom->saveHTML();
 		$converter = new HtmlConverter(array('remove_nodes' => 'span div'));
 		$value = $converter->convert($value);
 	}
@@ -261,7 +270,7 @@ function cwm_isPicklist($field, $module) {
 	$res = $adb->pquery('SELECT * FROM vtiger_field WHERE fieldname=? AND tabid=?', array($field, getTabid($module)));
 	if ($res && $adb->num_rows($res)==1) {
 		$fld = WebserviceField::fromQueryResult($adb, $res, 0);
-		return ($fld->getFieldDataType()=='picklist');
+		return $fld->getFieldDataType()=='picklist';
 	} else {
 		return false;
 	}

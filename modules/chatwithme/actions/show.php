@@ -84,8 +84,6 @@ class cbmmActionshow extends chatactionclass {
 	}
 
 	public function getResponse() {
-		global $current_user;
-		$req = getMMRequest();
 		switch ($this->status) {
 			case self::STATUS_FOUNDSOME:
 				$ret = array(
@@ -212,6 +210,7 @@ class cbmmActionshow extends chatactionclass {
 	}
 
 	private function getTableQuestionMD($table, $props, $module) {
+		global $site_URL;
 		$ps = json_decode($props, true);
 		if (json_last_error()!= JSON_ERROR_NONE || empty($props) || empty($ps) || empty($ps['columnlabels'])) {
 			$headers = array_keys($table[0]);
@@ -244,8 +243,8 @@ class cbmmActionshow extends chatactionclass {
 			$md .= '| ';
 			foreach ($row as $fname => $fvalue) {
 				if ($fname == 'id') {
-					list($wsid, $crmid) = explode('x', $fvalue);
-					$md .= $crmid.' | ';
+					$crmid = vtws_getCRMID($fvalue);
+					$md .= "[$crmid]($site_URL/index.php?action=DetailView&module=$module&record=$crmid) | ";
 				} else {
 					$md .= $fvalue.' | ';
 				}
@@ -288,11 +287,10 @@ class cbmmActionshow extends chatactionclass {
 				'hue' => 'random'
 			));
 		}
-		$chart = array(
+		return array(
 			'type' => $type,
 			'data' => $data,
 		);
-		return json_encode($chart);
 	}
 }
 ?>

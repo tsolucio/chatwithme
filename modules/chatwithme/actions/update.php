@@ -40,7 +40,6 @@ class cbmmActionupdate extends chatactionclass {
 				$crmid = vtlib_purify($prm[1]);
 				$fieldname = vtlib_purify($records[0]);
 				$fieldvalue = vtlib_purify($records[1]);
-				$module = getSalesEntityType($crmid);
 				$recid = vtws_getEntityId(getSalesEntityType($crmid)).'x'.$crmid;
 				$data = array(
 					'id' =>$recid,
@@ -53,7 +52,7 @@ class cbmmActionupdate extends chatactionclass {
 				);
 				$validation = cbwsValidateInformation(json_encode($context), $current_user);
 				if ($validation === true) {
-					$result = vtws_revise($data, $current_user);
+					vtws_revise($data, $current_user);
 					$this->status = self::STATUS_FOUND;
 				} else {
 					$this->status = self::STATUS_NOT_FOUND;

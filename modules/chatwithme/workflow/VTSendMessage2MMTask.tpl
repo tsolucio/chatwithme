@@ -22,6 +22,7 @@
 </script>
 <script src="modules/chatwithme/workflow/chatwithmetask.js" type="text/javascript" charset="utf-8"></script>
 <br/>
+<article class="slds-m-around_x-small">
 <div class="slds-grid slds-gutters">
 	<div class="slds-form-element slds-col">
 		<div class="slds-form-element__control">
@@ -57,7 +58,7 @@
 <legend class="slds-form-element__label"><b>{'Body'|@getTranslatedString:'chatwithme'}</b></legend><br/>
 <div class="slds-grid slds-gutters">
 	<div class="slds-form-element slds-col">
-		<span id="task-fieldnames-busyicon"><b>{$MOD.LBL_LOADING}</b><img src="{'vtbusy.gif'|@vtiger_imageurl:$THEME}" border="0"></span>
+		<span id="task-fieldnames-busyicon"><b>{$MOD.LBL_LOADING}</b><img src="{vtiger_imageurl('vtbusy.gif', $THEME)}" border="0"></span>
 		<select id='task-fieldnames' class="slds-select" style="display: none;"><option value=''>{$MOD.LBL_SELECT_OPTION_DOTDOTDOT}</option></select>
 	</div>
 	<div class="slds-form-element slds-col">
@@ -114,7 +115,7 @@
 		</div>
 	</div>
 </div>
-<br>
+</article>
 <script type="text/javascript" src="include/ckeditor/ckeditor.js"></script>
 <script>
 	CKEDITOR.replace('messageBody', {ldelim}

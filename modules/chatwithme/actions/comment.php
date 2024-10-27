@@ -35,7 +35,7 @@ class cbmmActioncomment extends chatactionclass {
 				$this->status = self::RECORD_NOT_FOUND;
 			} else {
 				$data = array(
-					'related_to' => $prm[1],
+					'related_to' => vtws_getWSID($prm[1]),
 					'commentcontent' => $prm[2],
 					'assigned_user_id' => vtws_getEntityId('Users').'x'.$current_user->id,
 				);
