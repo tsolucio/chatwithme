@@ -183,8 +183,7 @@ function getMMMsgColor($color) {
 
 function logMMCommand($mmuser, $command, $text, $found) {
 	global $adb, $current_user;
-	$usrid = (empty($current_user) ? 0 : $current_user->id);
-	$adb->pquery('insert into chatwithme_log values (?,?,?,?,?,?)', array($usrid, $mmuser, date('Y-m-d H:i:s'), $command, $text, $found));
+	$adb->pquery('insert into chatwithme_log values (?,?,?,?,?,?)', [empty($current_user) ? 0 : $current_user->id, $mmuser, date('Y-m-d H:i:s'), $command, $text, $found]);
 }
 
 function saveMMSettings($isactive, $cmdlang, $username, $iconurl, $posturl, $tokens, $mmuserpasswd) {

@@ -84,7 +84,6 @@ class cbmmActionshow extends chatactionclass {
 	}
 
 	public function getResponse() {
-		$req = getMMRequest();
 		switch ($this->status) {
 			case self::STATUS_FOUNDSOME:
 				$ret = array(
